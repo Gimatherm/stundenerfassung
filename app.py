@@ -19,12 +19,10 @@ EMPLOYEES = [
     {"id": "RTE", "name": "Romain Theissen"},
 ]
 
-
 def get_db():
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
     return db
-
 
 def init_db():
     db = get_db()
@@ -53,6 +51,13 @@ def init_db():
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS available_weeks (
+            year INTEGER NOT NULL,
+            week INTEGER NOT NULL,
+            employee_id TEXT NOT NULL,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (year, week, employee_id)
+        );
     """)
     # Seed customers and activities if empty
     if db.execute("SELECT COUNT(*) FROM customers").fetchone()[0] == 0:
@@ -68,16 +73,13 @@ def init_db():
                 "INSERT OR IGNORE INTO activities (code, name) VALUES (?, ?)",
                 [(a['code'], a['name']) for a in data['activities']]
             )
-    db.commit()
+            db.commit()
     db.close()
 
-
 # -- Static data -------------------------------------------------------------
-
 @app.route('/api/employees')
 def get_employees():
     return jsonify(EMPLOYEES)
-
 
 @app.route('/api/customers')
 def get_customers():
@@ -86,7 +88,6 @@ def get_customers():
     db.close()
     return jsonify([{"id": r["id"], "name": r["name"]} for r in rows])
 
-
 @app.route('/api/activities')
 def get_activities():
     db = get_db()
@@ -94,9 +95,39 @@ def get_activities():
     db.close()
     return jsonify([{"code": r["code"], "name": r["name"]} for r in rows])
 
+# -- Available Weeks ---------------------------------------------------------
+@app.route('/api/available-weeks', methods=['GET'])
+def get_available_weeks():
+    employee = request.args.get('employee')
+    db = get_db()
+    if employee:
+        rows = db.execute(
+            "SELECT DISTINCT year, week FROM available_weeks WHERE employee_id=? ORDER BY year DESC, week DESC",
+            (employee,)
+        ).fetchall()
+    else:
+        rows = db.execute(
+            "SELECT DISTINCT year, week FROM available_weeks ORDER BY year DESC, week DESC"
+        ).fetchall()
+    db.close()
+    return jsonify([{"year": r["year"], "week": r["week"]} for r in rows])
+
+@app.route('/api/available-weeks', methods=['POST'])
+def set_available_weeks():
+    data = request.get_json()
+    weeks = data.get('weeks', [])
+    db = get_db()
+    db.execute("DELETE FROM available_weeks")
+    for w in weeks:
+        db.execute(
+            "INSERT OR REPLACE INTO available_weeks (year, week, employee_id, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+            (w['year'], w['week'], w['employee_id'])
+        )
+    db.commit()
+    db.close()
+    return jsonify({"ok": True, "count": len(weeks)})
 
 # -- Entries -----------------------------------------------------------------
-
 @app.route('/api/entries', methods=['GET'])
 def get_entries():
     employee = request.args.get('employee')
@@ -105,16 +136,13 @@ def get_entries():
         return jsonify({"error": "employee and date required"}), 400
     db = get_db()
     rows = db.execute(
-        """SELECT id, employee_id, datum, kundenname, kunden_id,
-                  aktivitaet, akt_code, von, bis, pause, kommentar, synced
-           FROM entries
-           WHERE employee_id = ? AND datum = ?
-           ORDER BY von, id""",
+        """SELECT id, employee_id, datum, kundenname, kunden_id, aktivitaet, akt_code,
+                  von, bis, pause, kommentar, synced
+           FROM entries WHERE employee_id = ? AND datum = ? ORDER BY von, id""",
         (employee, datum)
     ).fetchall()
     db.close()
     return jsonify([dict(r) for r in rows])
-
 
 @app.route('/api/entries', methods=['POST'])
 def create_entry():
@@ -125,9 +153,8 @@ def create_entry():
             return jsonify({"error": f"{field} required"}), 400
     db = get_db()
     cursor = db.execute(
-        """INSERT INTO entries
-           (employee_id, datum, kundenname, kunden_id, aktivitaet, akt_code,
-            von, bis, pause, kommentar, updated_at)
+        """INSERT INTO entries (employee_id, datum, kundenname, kunden_id, aktivitaet, akt_code,
+                                von, bis, pause, kommentar, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)""",
         (
             data['employee_id'], data['datum'],
@@ -143,7 +170,6 @@ def create_entry():
     db.close()
     return jsonify(dict(row)), 201
 
-
 @app.route('/api/entries/<int:entry_id>', methods=['PUT'])
 def update_entry(entry_id):
     data = request.get_json()
@@ -153,10 +179,9 @@ def update_entry(entry_id):
         db.close()
         return jsonify({"error": "not found"}), 404
     db.execute(
-        """UPDATE entries SET
-           kundenname=?, kunden_id=?, aktivitaet=?, akt_code=?,
-           von=?, bis=?, pause=?, kommentar=?,
-           synced=0, updated_at=CURRENT_TIMESTAMP
+        """UPDATE entries SET kundenname=?, kunden_id=?, aktivitaet=?, akt_code=?,
+                              von=?, bis=?, pause=?, kommentar=?, synced=0,
+                              updated_at=CURRENT_TIMESTAMP
            WHERE id=?""",
         (
             data.get('kundenname'), data.get('kunden_id'),
@@ -171,7 +196,6 @@ def update_entry(entry_id):
     db.close()
     return jsonify(dict(row))
 
-
 @app.route('/api/entries/<int:entry_id>', methods=['DELETE'])
 def delete_entry(entry_id):
     db = get_db()
@@ -180,49 +204,37 @@ def delete_entry(entry_id):
     db.close()
     return jsonify({"ok": True})
 
-
-# -- Week & overview endpoints ------------------------------------------------
-
+# -- Week & overview endpoints -----------------------------------------------
 @app.route('/api/entries/week')
 def get_week_entries():
-    """Alle Eintraege eines Mitarbeiters fuer eine Kalenderwoche."""
     employee = request.args.get('employee')
     year = request.args.get('year', type=int)
     week = request.args.get('week', type=int)
     if not employee or not year or not week:
         return jsonify({"error": "employee, year and week required"}), 400
-
-    # ISO-Woche: Montag bis Sonntag berechnen
     import datetime as dt
     monday = dt.date.fromisocalendar(year, week, 1)
     sunday = dt.date.fromisocalendar(year, week, 7)
-
     db = get_db()
     rows = db.execute(
-        """SELECT id, employee_id, datum, kundenname, kunden_id,
-                  aktivitaet, akt_code, von, bis, pause, kommentar, synced
-           FROM entries
-           WHERE employee_id = ? AND datum BETWEEN ? AND ?
+        """SELECT id, employee_id, datum, kundenname, kunden_id, aktivitaet, akt_code,
+                  von, bis, pause, kommentar, synced
+           FROM entries WHERE employee_id = ? AND datum BETWEEN ? AND ?
            ORDER BY datum, von, id""",
         (employee, monday.isoformat(), sunday.isoformat())
     ).fetchall()
     db.close()
     return jsonify([dict(r) for r in rows])
 
-
 @app.route('/api/sync-status')
 def get_sync_status():
-    """Uebersicht aller nicht-synchronisierten Eintraege, gruppiert nach Mitarbeiter und KW."""
     db = get_db()
     rows = db.execute(
         """SELECT employee_id, datum, COUNT(*) as count
-           FROM entries
-           WHERE synced = 0
-           GROUP BY employee_id, datum
-           ORDER BY datum, employee_id"""
+           FROM entries WHERE synced = 0
+           GROUP BY employee_id, datum ORDER BY datum, employee_id"""
     ).fetchall()
     db.close()
-
     import datetime as dt
     result = {}
     for r in rows:
@@ -231,13 +243,11 @@ def get_sync_status():
         iso = d.isocalendar()
         kw_key = f"{iso[0]}-W{iso[1]:02d}"
         year, week = iso[0], iso[1]
-
         if emp not in result:
             result[emp] = {}
         if kw_key not in result[emp]:
             result[emp][kw_key] = {'year': year, 'week': week, 'count': 0}
         result[emp][kw_key]['count'] += r['count']
-
     out = []
     for emp, weeks in sorted(result.items()):
         for kw_key, info in sorted(weeks.items()):
@@ -250,18 +260,15 @@ def get_sync_status():
             })
     return jsonify(out)
 
-
-# -- Sync endpoints -----------------------------------------------------------
-
+# -- Sync endpoints ----------------------------------------------------------
 @app.route('/api/entries/unsynced')
 def get_unsynced():
     db = get_db()
     rows = db.execute(
-        """SELECT * FROM entries WHERE synced = 0 ORDER BY datum, employee_id, von"""
+        "SELECT * FROM entries WHERE synced = 0 ORDER BY datum, employee_id, von"
     ).fetchall()
     db.close()
     return jsonify([dict(r) for r in rows])
-
 
 @app.route('/api/entries/mark-synced', methods=['POST'])
 def mark_synced():
@@ -278,13 +285,10 @@ def mark_synced():
     db.close()
     return jsonify({"ok": True, "synced": len(ids)})
 
-
-# -- Frontend -----------------------------------------------------------------
-
+# -- Frontend ----------------------------------------------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 if __name__ == '__main__':
     init_db()
