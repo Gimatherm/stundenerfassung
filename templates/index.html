@@ -33,11 +33,11 @@
     overscroll-behavior: none;
   }
 
-  /* ── SCREENS ── */
+  /* ââ SCREENS ââ */
   .screen { display: none; flex-direction: column; min-height: 100vh; }
   .screen.active { display: flex; }
 
-  /* ── EMPLOYEE SELECT ── */
+  /* ââ EMPLOYEE SELECT ââ */
   #screen-employee {
     align-items: center;
     justify-content: center;
@@ -71,7 +71,7 @@
   .employee-btn .kuerzel { font-size: 22px; font-weight: 700; display: block; }
   .employee-btn .fullname { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; display: block; }
 
-  /* ── MAIN APP ── */
+  /* ââ MAIN APP ââ */
   #screen-main { background: var(--bg); }
 
   /* Header */
@@ -164,6 +164,18 @@
     display: inline-block;
   }
 
+  /* Week unavailable banner */
+  .week-unavail-banner {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    text-align: center;
+    display: none;
+  }
+  .week-unavail-banner.show { display: block; }
+
   /* Content */
   .content {
     flex: 1;
@@ -179,6 +191,21 @@
   }
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
   .empty-state p { font-size: 15px; }
+
+  /* No weeks message */
+  .no-weeks-msg {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+  }
+  .no-weeks-msg .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  .no-weeks-msg p {
+    font-size: 15px;
+    line-height: 1.6;
+  }
 
   /* Entry cards */
   .entry-card {
@@ -283,7 +310,7 @@
   }
   .fab:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(26,86,219,0.4); }
 
-  /* ── MODAL / BOTTOM SHEET ── */
+  /* ââ MODAL / BOTTOM SHEET ââ */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -513,7 +540,7 @@
     pointer-events: none;
   }
 
-  /* ── BOTTOM NAV ── */
+  /* ââ BOTTOM NAV ââ */
   .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -544,7 +571,38 @@
   .nav-tab.active { color: var(--primary); }
   .nav-tab .nav-icon { font-size: 20px; line-height: 1; }
 
-  /* ── WEEK VIEW ── */
+  /* ââ WEEK VIEW ââ */
+  /* KW selector row */
+  .kw-selector {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 16px 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .kw-selector::-webkit-scrollbar { display: none; }
+
+  .kw-chip {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .kw-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  .kw-chip:active { transform: scale(0.94); }
+
   .week-day-block {
     background: var(--card);
     border-radius: var(--radius);
@@ -587,7 +645,7 @@
   .week-entry-row:last-child { border-bottom: none; }
   .week-entry-time { color: var(--primary); font-weight: 700; min-width: 80px; font-size: 12px; }
   .week-entry-info { flex: 1; min-width: 0; }
-  .week-entry-customer { font-weight: 600; white-space: nowraw; overflow: hidden; text-overflow: ellipsis; }
+  .week-entry-customer { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .week-entry-act { font-size: 11px; color: var(--text-muted); }
   .week-empty { padding: 10px 0; color: var(--text-muted); font-size: 13px; text-align: center; }
   .week-add-btn {
@@ -607,7 +665,7 @@
     border-top: 1px solid var(--border);
   }
 
-  /* ── SYNC STATUS ── */
+  /* ââ SYNC STATUS ââ */
   .status-section { margin-bottom: 20px; }
   .status-emp-header {
     font-size: 13px;
@@ -660,18 +718,18 @@
 </head>
 <body>
 
-<!-- ── EMPLOYEE SELECTION SCREEN ── -->
+<!-- ââ EMPLOYEE SELECTION SCREEN ââ -->
 <div id="screen-employee" class="screen active">
   <div class="logo-area">
     <h1>Stundenerfassung</h1>
-    <p>Wähle dein Kürzel</p>
+    <p>WÃ¤hle dein KÃ¼rzel</p>
   </div>
   <div class="employee-grid" id="employee-grid">
     <!-- filled by JS -->
   </div>
 </div>
 
-<!-- ── MAIN APP SCREEN ── -->
+<!-- ââ MAIN APP SCREEN ââ -->
 <div id="screen-main" class="screen">
   <div class="app-header">
     <div class="header-top">
@@ -681,20 +739,21 @@
       </button>
     </div>
     <div class="date-nav">
-      <button class="nav-btn" onclick="changeDay(-1)">‹</button>
+      <button class="nav-btn" onclick="changeDay(-1)">â¹</button>
       <div class="date-display" onclick="openDatePicker()">
         <span class="date-main" id="display-date">--</span>
         <span class="date-sub" id="display-week">--</span>
         <span class="today-btn" id="today-btn" onclick="goToToday(event)">Heute</span>
       </div>
-      <button class="nav-btn" onclick="changeDay(1)">›</button>
+      <button class="nav-btn" onclick="changeDay(1)">âº</button>
     </div>
+    <div id="week-unavail-banner" class="week-unavail-banner">â  Diese Woche hat kein Stundenblatt</div>
   </div>
 
   <div class="content" id="entries-list">
     <div class="empty-state">
-      <div class="icon">📋</div>
-      <p>Lade Einträge…</p>
+      <div class="icon">ð</div>
+      <p>Lade EintrÃ¤geâ¦</p>
     </div>
   </div>
 
@@ -703,7 +762,7 @@
 
   <!-- Sync status view (hidden by default) -->
   <div class="content" id="status-list" style="display:none">
-    <button class="status-refresh-btn" onclick="loadSyncStatus()">↻ Aktualisieren</button>
+    <button class="status-refresh-btn" onclick="loadSyncStatus()">â» Aktualisieren</button>
     <div id="status-content"></div>
   </div>
 
@@ -713,24 +772,24 @@
   <!-- Bottom Navigation -->
   <nav class="bottom-nav">
     <button class="nav-tab active" id="tab-day" onclick="switchTab('day')">
-      <span class="nav-icon">📅</span>Tag
+      <span class="nav-icon">ð</span>Tag
     </button>
     <button class="nav-tab" id="tab-week" onclick="switchTab('week')">
-      <span class="nav-icon">📆</span>Woche
+      <span class="nav-icon">ð</span>Woche
     </button>
     <button class="nav-tab" id="tab-status" onclick="switchTab('status')">
-      <span class="nav-icon">🔄</span>Sync
+      <span class="nav-icon">ð</span>Sync
     </button>
   </nav>
 </div>
 
-<!-- ── ENTRY MODAL ── -->
+<!-- ââ ENTRY MODAL ââ -->
 <div class="modal-overlay" id="entry-modal" onclick="handleOverlayClick(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
       <h2 id="modal-title">Neuer Eintrag</h2>
-      <button class="close-btn" onclick="closeModal()">✕</button>
+      <button class="close-btn" onclick="closeModal()">â</button>
     </div>
     <div class="modal-body">
       <form id="entry-form" onsubmit="saveEntry(event)">
@@ -739,7 +798,7 @@
         <div class="form-group">
           <label>Kundenname</label>
           <div class="customer-search-wrap">
-            <input type="text" id="f-kundenname" placeholder="Kunden suchen…"
+            <input type="text" id="f-kundenname" placeholder="Kunden suchenâ¦"
                    autocomplete="off" oninput="searchCustomers(this.value)"
                    onfocus="searchCustomers(this.value)">
             <div id="customer-results"></div>
@@ -749,9 +808,9 @@
 
         <!-- Activity -->
         <div class="form-group">
-          <label>Aktivität</label>
+          <label>AktivitÃ¤t</label>
           <select id="f-aktivitaet">
-            <option value="">-- Wählen --</option>
+            <option value="">-- WÃ¤hlen --</option>
           </select>
           <input type="hidden" id="f-akt-code">
         </div>
@@ -759,7 +818,7 @@
         <!-- Comment -->
         <div class="form-group">
           <label>Was wurde gemacht?</label>
-          <textarea id="f-kommentar" placeholder="Kurze Beschreibung der Arbeit…"></textarea>
+          <textarea id="f-kommentar" placeholder="Kurze Beschreibung der Arbeitâ¦"></textarea>
         </div>
 
         <!-- Times -->
@@ -786,7 +845,7 @@
 
         <div class="btn-row">
           <button type="button" class="btn-danger" id="delete-btn"
-                  onclick="deleteEntry()" style="display:none">Löschen</button>
+                  onclick="deleteEntry()" style="display:none">LÃ¶schen</button>
           <button type="submit" class="btn-primary" id="save-btn">Speichern</button>
         </div>
 
@@ -799,7 +858,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ── State ────────────────────────────────────────────────────────────────────
+// ââ State ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 let currentEmployee = null;
 let currentDate = todayStr();
 let editingEntryId = null;
@@ -807,8 +866,10 @@ let allCustomers = [];
 let allActivities = [];
 let currentEntries = [];
 let currentTab = 'day';
+let availableWeeks = [];
+let selectedWeek = null;
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 window.addEventListener('DOMContentLoaded', async () => {
   const saved = localStorage.getItem('employee');
   await loadStaticData();
@@ -828,7 +889,7 @@ async function loadStaticData() {
   allActivities = activities;
 
   const sel = document.getElementById('f-aktivitaet');
-  sel.innerHTML = '<option value="">-- Wählen --</option>';
+  sel.innerHTML = '<option value="">-- WÃ¤hlen --</option>';
   activities.forEach(a => {
     const opt = document.createElement('option');
     opt.value = a.name;
@@ -851,13 +912,14 @@ async function renderEmployeeGrid() {
   });
 }
 
-function selectEmployee(emp) {
+async function selectEmployee(emp) {
   currentEmployee = emp;
   localStorage.setItem('employee', JSON.stringify(emp));
   document.getElementById('header-kuerzel').textContent = emp.id;
   showScreen('main');
   currentDate = todayStr();
   renderDate();
+  await fetchAvailableWeeks();
   loadEntries();
 }
 
@@ -873,7 +935,52 @@ function showScreen(name) {
   document.getElementById('screen-' + name).classList.add('active');
 }
 
-// ── Date ─────────────────────────────────────────────────────────────────────
+// ââ Available Weeks ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+async function fetchAvailableWeeks() {
+  try {
+    const data = await fetch(`/api/available-weeks?employee=${currentEmployee.id}`).then(r => r.json());
+    availableWeeks = Array.isArray(data) ? data : [];
+  } catch (e) {
+    availableWeeks = [];
+  }
+  updateWeekAvailBanner();
+}
+
+function isWeekAvailable(dateStr) {
+  if (!availableWeeks.length) return false;
+  const [y, w] = getISOWeek(dateStr);
+  return availableWeeks.some(aw => aw.year === y && aw.week === w);
+}
+
+function updateWeekAvailBanner() {
+  const banner = document.getElementById('week-unavail-banner');
+  if (!banner) return;
+  if (availableWeeks.length > 0 && !isWeekAvailable(currentDate)) {
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+function getMondayOfWeek(year, week) {
+  const jan4 = new Date(year, 0, 4);
+  const startOfWeek1 = new Date(jan4);
+  startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const monday = new Date(startOfWeek1);
+  monday.setDate(startOfWeek1.getDate() + (week - 1) * 7);
+  return monday.toISOString().slice(0, 10);
+}
+
+function selectKW(year, week) {
+  const monday = getMondayOfWeek(year, week);
+  currentDate = monday;
+  selectedWeek = { year, week };
+  renderDate();
+  loadWeekView();
+  updateWeekAvailBanner();
+}
+
+// ââ Date âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -881,7 +988,7 @@ function todayStr() {
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-  const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
+  const months = ['Jan', 'Feb', 'MÃ¤r', 'Apr', 'Mai', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
   return `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
@@ -908,6 +1015,7 @@ function changeDay(delta) {
   d.setDate(d.getDate() + delta);
   currentDate = d.toISOString().slice(0, 10);
   renderDate();
+  updateWeekAvailBanner();
   loadEntries();
 }
 
@@ -915,6 +1023,7 @@ function goToToday(e) {
   e.stopPropagation();
   currentDate = todayStr();
   renderDate();
+  updateWeekAvailBanner();
   loadEntries();
 }
 
@@ -928,11 +1037,12 @@ function onDatePicked(val) {
   if (val) {
     currentDate = val;
     renderDate();
+    updateWeekAvailBanner();
     loadEntries();
   }
 }
 
-// ── Tab Navigation ────────────────────────────────────────────────────────────
+// ââ Tab Navigation ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -947,10 +1057,10 @@ function switchTab(tab) {
   if (tab === 'status') loadSyncStatus();
 }
 
-// ── Week View ─────────────────────────────────────────────────────────────────
+// ââ Week View âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function getWeekDates(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  const day = d.getDay() === 0 ? 7 : d.getDay(); // Mon=1 … Sun=7
+  const day = d.getDay() === 0 ? 7 : d.getDay();
   const monday = new Date(d);
   monday.setDate(d.getDate() - (day - 1));
   const days = [];
@@ -964,7 +1074,7 @@ function getWeekDates(dateStr) {
 
 async function loadWeekView() {
   const container = document.getElementById('week-list');
-  container.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Lade Woche…</p></div>';
+  container.innerHTML = '<div class="empty-state"><div class="icon">â³</div><p>Lade Wocheâ¦</p></div>';
 
   const d = new Date(currentDate + 'T12:00:00');
   const iso = getISOWeek(currentDate);
@@ -977,10 +1087,26 @@ async function loadWeekView() {
 
     const weekDates = getWeekDates(currentDate);
     const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-    const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const months = ['Jan','Feb','MÃ¤r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
     const today = todayStr();
 
     container.innerHTML = '';
+
+    // Build KW selector HTML
+    let kwSelectorHtml = '<div class="kw-selector" id="kw-selector">';
+    if (availableWeeks.length === 0) {
+      kwSelectorHtml += '<div class="no-weeks-msg" style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">ð Keine StundenblÃ¤tter. Bitte sync ausfÃ¼hren.</div>';
+    } else {
+      const [curYear, curWeek] = getISOWeek(currentDate);
+      availableWeeks.forEach(aw => {
+        const isActive = aw.year === curYear && aw.week === curWeek;
+        kwSelectorHtml += `<button class="kw-chip${isActive ? ' active' : ''}" onclick="selectKW(${aw.year}, ${aw.week})">KW ${String(aw.week).padStart(2,'0')} / ${aw.year}</button>`;
+      });
+    }
+    kwSelectorHtml += '</div>';
+    container.innerHTML = kwSelectorHtml;
+
+    // Add week day blocks
     weekDates.forEach((dateStr, idx) => {
       const dayEntries = entries.filter(e => e.datum === dateStr);
       const isToday = dateStr === today;
@@ -996,15 +1122,15 @@ async function loadWeekView() {
 
       let entriesHtml = '';
       if (dayEntries.length === 0) {
-        entriesHtml = '<div class="week-empty">Keine Einträge</div>';
+        entriesHtml = '<div class="week-empty">Keine EintrÃ¤ge</div>';
       } else {
         dayEntries.forEach(e => {
           entriesHtml += `
             <div class="week-entry-row" onclick="goToDayEntry('${dateStr}', ${e.id})">
-              <div class="week-entry-time">${e.von || '?'}–${e.bis || '?'}</div>
+              <div class="week-entry-time">${e.von || '?'}â${e.bis || '?'}</div>
               <div class="week-entry-info">
                 <div class="week-entry-customer">${e.kundenname || '(kein Kunde)'}</div>
-                <div class="week-entry-act">${e.aktivitaet || ''}${e.kommentar ? ' · ' + e.kommentar : ''}</div>
+                <div class="week-entry-act">${e.aktivitaet || ''}${e.kommentar ? ' Â· ' + e.kommentar : ''}</div>
               </div>
             </div>`;
         });
@@ -1014,25 +1140,26 @@ async function loadWeekView() {
         <div class="${headerClass}" onclick="goToDay('${dateStr}')">
           <div>
             <span class="${labelClass}">${days[idx]}</span>
-            <span class="week-day-date"> · ${dateLabel}</span>
+            <span class="week-day-date"> Â· ${dateLabel}</span>
           </div>
           <span class="${badgeClass}">${dayEntries.length}</span>
         </div>
         <div class="week-day-entries">${entriesHtml}</div>
         <button class="week-add-btn" onclick="goToDay('${dateStr}'); setTimeout(openNewEntry, 300)">
-          + Eintrag hinzufügen
+          + Eintrag hinzufÃ¼gen
         </button>`;
 
       container.appendChild(block);
     });
   } catch (e) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Verbindungsfehler</p></div>';
+    container.innerHTML = '<div class="empty-state"><div class="icon">â ï¸</div><p>Verbindungsfehler</p></div>';
   }
 }
 
 function goToDay(dateStr) {
   currentDate = dateStr;
   renderDate();
+  updateWeekAvailBanner();
   switchTab('day');
   loadEntries();
 }
@@ -1040,6 +1167,7 @@ function goToDay(dateStr) {
 function goToDayEntry(dateStr, entryId) {
   currentDate = dateStr;
   renderDate();
+  updateWeekAvailBanner();
   switchTab('day');
   loadEntries().then(() => {
     const entry = currentEntries.find(e => e.id === entryId);
@@ -1050,13 +1178,11 @@ function goToDayEntry(dateStr, entryId) {
 function getISOWeek(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const iso = d.toISOString ? null : null;
-  // Use same logic as getKW but return [year, week]
   const jan4 = new Date(d.getFullYear(), 0, 4);
   const startOfWeek1 = new Date(jan4);
   startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
   const diff = d - startOfWeek1;
   const week = Math.floor(diff / (7 * 86400000)) + 1;
-  // Handle year boundary
   if (week < 1) {
     const dec28 = new Date(d.getFullYear() - 1, 11, 28);
     return getISOWeek(dec28.toISOString().slice(0, 10));
@@ -1068,10 +1194,10 @@ function getISOWeek(dateStr) {
   return [d.getFullYear(), week];
 }
 
-// ── Sync Status ───────────────────────────────────────────────────────────────
+// ââ Sync Status âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function loadSyncStatus() {
   const content = document.getElementById('status-content');
-  content.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Lade Status…</p></div>';
+  content.innerHTML = '<div class="empty-state"><div class="icon">â³</div><p>Lade Statusâ¦</p></div>';
 
   try {
     const data = await fetch('/api/sync-status').then(r => r.json());
@@ -1079,13 +1205,12 @@ async function loadSyncStatus() {
     if (!data.length) {
       content.innerHTML = `
         <div class="status-all-synced">
-          <div class="icon">✅</div>
-          <p>Alle Einträge sind synchronisiert.</p>
+          <div class="icon">â</div>
+          <p>Alle EintrÃ¤ge sind synchronisiert.</p>
         </div>`;
       return;
     }
 
-    // Gruppieren nach Mitarbeiter
     const byEmp = {};
     data.forEach(item => {
       if (!byEmp[item.employee_id]) byEmp[item.employee_id] = [];
@@ -1110,20 +1235,20 @@ async function loadSyncStatus() {
       content.appendChild(section);
     }
   } catch (e) {
-    content.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Verbindungsfehler</p></div>';
+    content.innerHTML = '<div class="empty-state"><div class="icon">â ï¸</div><p>Verbindungsfehler</p></div>';
   }
 }
 
-// ── Entries ───────────────────────────────────────────────────────────────────
+// ââ Entries âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function loadEntries() {
   const container = document.getElementById('entries-list');
-  container.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>Lade…</p></div>';
+  container.innerHTML = '<div class="empty-state"><div class="icon">â³</div><p>Ladeâ¦</p></div>';
   try {
     const entries = await fetch(`/api/entries?employee=${currentEmployee.id}&date=${currentDate}`).then(r => r.json());
     renderEntries(entries);
     return entries;
   } catch (e) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Verbindungsfehler</p></div>';
+    container.innerHTML = '<div class="empty-state"><div class="icon">â ï¸</div><p>Verbindungsfehler</p></div>';
     return [];
   }
 }
@@ -1134,8 +1259,8 @@ function renderEntries(entries) {
   if (!entries.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="icon">📋</div>
-        <p>Noch keine Einträge für diesen Tag.</p>
+        <div class="icon">ð</div>
+        <p>Noch keine EintrÃ¤ge fÃ¼r diesen Tag.</p>
       </div>`;
     return;
   }
@@ -1153,7 +1278,7 @@ function renderEntries(entries) {
 
     card.innerHTML = `
       <div class="entry-time">
-        <span class="time-range">${e.von || '?'}–${e.bis || '?'}</span>
+        <span class="time-range">${e.von || '?'}â${e.bis || '?'}</span>
         <span class="time-pause">${pauseLabel}</span>
       </div>
       <div class="entry-divider"></div>
@@ -1168,7 +1293,7 @@ function renderEntries(entries) {
   });
 }
 
-// ── Modal ────────────────────────────────────────────────────────────────────
+// ââ Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function openNewEntry() {
   editingEntryId = null;
   document.getElementById('modal-title').textContent = 'Neuer Eintrag';
@@ -1180,7 +1305,6 @@ function openNewEntry() {
   clearPauseBtns();
   document.getElementById('f-kundenname').value = '';
   document.getElementById('customer-results').style.display = 'none';
-  // Von = letztes Bis des Tages, sonst 07:00
   let defaultVon = '07:00';
   if (currentEntries.length > 0) {
     const lastBis = currentEntries
@@ -1207,13 +1331,11 @@ function openEditEntry(entry) {
   document.getElementById('f-kommentar').value = entry.kommentar || '';
   document.getElementById('customer-results').style.display = 'none';
 
-  // Set activity
   const sel = document.getElementById('f-aktivitaet');
   for (let opt of sel.options) {
     if (opt.value === entry.aktivitaet) { sel.value = opt.value; break; }
   }
 
-  // Set pause buttons
   clearPauseBtns();
   document.querySelectorAll('.pause-btn').forEach(btn => {
     if (parseInt(btn.textContent) === parseInt(entry.pause)) {
@@ -1233,7 +1355,7 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('entry-modal')) closeModal();
 }
 
-// ── Customer search ───────────────────────────────────────────────────────────
+// ââ Customer search âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function searchCustomers(query) {
   const results = document.getElementById('customer-results');
   if (!query || query.length < 1) { results.style.display = 'none'; return; }
@@ -1263,7 +1385,7 @@ document.addEventListener('click', e => {
   }
 });
 
-// ── Pause ────────────────────────────────────────────────────────────────────
+// ââ Pause ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function setPause(minutes) {
   document.getElementById('f-pause').value = minutes;
   clearPauseBtns();
@@ -1276,7 +1398,7 @@ function clearPauseBtns() {
   document.querySelectorAll('.pause-btn').forEach(b => b.classList.remove('active'));
 }
 
-// ── Activity select ───────────────────────────────────────────────────────────
+// ââ Activity select âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 document.addEventListener('change', e => {
   if (e.target.id === 'f-aktivitaet') {
     const sel = e.target;
@@ -1285,7 +1407,7 @@ document.addEventListener('change', e => {
   }
 });
 
-// ── Save / Delete ────────────────────────────────────────────────────────────
+// ââ Save / Delete ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function saveEntry(e) {
   e.preventDefault();
   const btn = document.getElementById('save-btn');
@@ -1315,7 +1437,7 @@ async function saveEntry(e) {
     });
     closeModal();
     loadEntries();
-    showToast(editingEntryId ? 'Eintrag gespeichert ✓' : 'Eintrag hinzugefügt ✓');
+    showToast(editingEntryId ? 'Eintrag gespeichert â' : 'Eintrag hinzugefÃ¼gt â');
   } catch (err) {
     showToast('Fehler beim Speichern');
   } finally {
@@ -1326,14 +1448,14 @@ async function saveEntry(e) {
 
 async function deleteEntry() {
   if (!editingEntryId) return;
-  if (!confirm('Eintrag löschen?')) return;
+  if (!confirm('Eintrag lÃ¶schen?')) return;
   await fetch(`/api/entries/${editingEntryId}`, { method: 'DELETE' });
   closeModal();
   loadEntries();
-  showToast('Eintrag gelöscht');
+  showToast('Eintrag gelÃ¶scht');
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
+// ââ Toast âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
