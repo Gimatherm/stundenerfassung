@@ -89,6 +89,23 @@ def get_customers():
     db.close()
     return jsonify([{"id": r["id"], "name": r["name"]} for r in rows])
 
+@app.route('/api/customers/import', methods=['POST'])
+def import_customers():
+    """Ersetzt die gesamte Kundenliste."""
+    data = request.get_json()
+    customers = data.get('customers', [])
+    if not customers:
+        return jsonify({"error": "keine Kunden"}), 400
+    db = get_db()
+    db.execute("DELETE FROM customers")
+    db.executemany(
+        "INSERT INTO customers (id, name) VALUES (?, ?)",
+        [(c['id'], c['name']) for c in customers]
+    )
+    db.commit()
+    db.close()
+    return jsonify({"ok": True, "count": len(customers)})
+
 @app.route('/api/activities')
 def get_activities():
     db = get_db()
