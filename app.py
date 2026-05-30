@@ -4,6 +4,8 @@ from flask_cors import CORS
 import sqlite3
 import os
 import json
+import hmac
+import hashlib
 from datetime import datetime
 
 app = Flask(__name__)
@@ -19,6 +21,36 @@ EMPLOYEES = [
     {"id": "RHE", "name": "Romain Heindrichs"},
     {"id": "RTE", "name": "Romain Theissen"},
 ]
+
+# ── Login / PIN ───────────────────────────────────────────────────────────
+# PINs koennen hier geaendert werden (danach neu deployen).
+EMPLOYEE_PINS = {
+    "JHE": "1234",
+    "MTH": "2345",
+    "ODY": "3456",
+    "PNS": "4567",
+    "RHE": "5678",
+    "RTE": "6789",
+}
+ADMIN_IDS = {"JHE"}  # darf alle Mitarbeiter sehen
+AUTH_SECRET = os.environ.get('AUTH_SECRET', 'gimatherm-stunden-2026-geheim')
+
+def token_for(employee_id):
+    return hmac.new(AUTH_SECRET.encode(), str(employee_id).encode(),
+                    hashlib.sha256).hexdigest()[:32]
+
+def valid_for(employee_id, token):
+    if not token:
+        return False
+    if token == token_for(employee_id):
+        return True
+    for aid in ADMIN_IDS:
+        if token == token_for(aid):
+            return True
+    return False
+
+def check_auth(employee_id):
+    return valid_for(employee_id, request.headers.get('X-Auth-Token', ''))
 
 def get_db():
     db = sqlite3.connect(DATABASE)
@@ -113,10 +145,28 @@ def get_activities():
     db.close()
     return jsonify([{"code": r["code"], "name": r["name"]} for r in rows])
 
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json() or {}
+    employee = data.get('employee')
+    pin = str(data.get('pin', '')).strip()
+    if not employee or employee not in EMPLOYEE_PINS:
+        return jsonify({"ok": False, "error": "Unbekanntes Kuerzel"}), 401
+    if pin != EMPLOYEE_PINS[employee]:
+        return jsonify({"ok": False, "error": "Falsche PIN"}), 401
+    return jsonify({
+        "ok": True,
+        "employee": employee,
+        "token": token_for(employee),
+        "is_admin": employee in ADMIN_IDS
+    })
+
 # -- Available Weeks ---------------------------------------------------------
 @app.route('/api/available-weeks', methods=['GET'])
 def get_available_weeks():
     employee = request.args.get('employee')
+    if employee and not check_auth(employee):
+        return jsonify({"error": "unauthorized"}), 401
     db = get_db()
     if employee:
         rows = db.execute(
@@ -152,6 +202,8 @@ def get_entries():
     datum = request.args.get('date')
     if not employee or not datum:
         return jsonify({"error": "employee and date required"}), 400
+    if not check_auth(employee):
+        return jsonify({"error": "unauthorized"}), 401
     db = get_db()
     rows = db.execute(
         """SELECT id, employee_id, datum, kundenname, kunden_id, aktivitaet, akt_code,
@@ -169,6 +221,8 @@ def create_entry():
     for field in required:
         if not data.get(field):
             return jsonify({"error": f"{field} required"}), 400
+    if not check_auth(data['employee_id']):
+        return jsonify({"error": "unauthorized"}), 401
     db = get_db()
     cursor = db.execute(
         """INSERT INTO entries (employee_id, datum, kundenname, kunden_id, aktivitaet, akt_code,
@@ -192,10 +246,13 @@ def create_entry():
 def update_entry(entry_id):
     data = request.get_json()
     db = get_db()
-    existing = db.execute("SELECT id FROM entries WHERE id = ?", (entry_id,)).fetchone()
+    existing = db.execute("SELECT employee_id FROM entries WHERE id = ?", (entry_id,)).fetchone()
     if not existing:
         db.close()
         return jsonify({"error": "not found"}), 404
+    if not check_auth(existing["employee_id"]):
+        db.close()
+        return jsonify({"error": "unauthorized"}), 401
     db.execute(
         """UPDATE entries SET kundenname=?, kunden_id=?, aktivitaet=?, akt_code=?,
                               von=?, bis=?, pause=?, kommentar=?, synced=0,
@@ -217,6 +274,10 @@ def update_entry(entry_id):
 @app.route('/api/entries/<int:entry_id>', methods=['DELETE'])
 def delete_entry(entry_id):
     db = get_db()
+    row = db.execute("SELECT employee_id FROM entries WHERE id = ?", (entry_id,)).fetchone()
+    if row and not check_auth(row["employee_id"]):
+        db.close()
+        return jsonify({"error": "unauthorized"}), 401
     db.execute("DELETE FROM entries WHERE id = ?", (entry_id,))
     db.commit()
     db.close()
@@ -230,6 +291,8 @@ def get_week_entries():
     week = request.args.get('week', type=int)
     if not employee or not year or not week:
         return jsonify({"error": "employee, year and week required"}), 400
+    if not check_auth(employee):
+        return jsonify({"error": "unauthorized"}), 401
     import datetime as dt
     monday = dt.date.fromisocalendar(year, week, 1)
     sunday = dt.date.fromisocalendar(year, week, 7)
