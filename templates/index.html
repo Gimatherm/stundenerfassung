@@ -89,12 +89,44 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 16px 10px;
+    min-height: 56px;
   }
 
+  /* KW Overview header: title left, chip right */
   .header-top .app-title {
     font-size: 17px;
     font-weight: 600;
     color: rgba(255,255,255,0.85);
+  }
+
+  /* Week view header: back left, title center, empty right */
+  .header-back-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  .header-back-btn:active { opacity: 0.7; }
+
+  .header-center-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    flex: 1;
+  }
+
+  .header-right-placeholder {
+    /* matches width of back button side to keep title centered */
+    min-width: 90px;
   }
 
   .employee-chip {
@@ -110,12 +142,12 @@
   }
   .employee-chip:active { background: rgba(255,255,255,0.3); }
 
-  /* Date Navigation */
+  /* Date Navigation row (only in week view) */
   .date-nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px 14px;
+    padding: 8px 12px 12px;
   }
 
   .nav-btn {
@@ -133,48 +165,18 @@
     transition: background 0.15s;
   }
   .nav-btn:active { background: rgba(255,255,255,0.3); }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
 
   .date-display {
     text-align: center;
     color: #fff;
-    cursor: pointer;
   }
   .date-display .date-main {
-    font-size: 18px;
-    font-weight: 700;
-    display: block;
-  }
-  .date-display .date-sub {
-    font-size: 12px;
-    color: rgba(255,255,255,0.75);
-    margin-top: 2px;
-    display: block;
-  }
-
-  .today-btn {
-    background: rgba(255,255,255,0.15);
-    border: none;
-    color: rgba(255,255,255,0.9);
-    padding: 4px 10px;
-    border-radius: 10px;
-    font-size: 11px;
+    font-size: 15px;
     font-weight: 600;
-    cursor: pointer;
-    margin-top: 4px;
-    display: inline-block;
+    display: block;
+    color: rgba(255,255,255,0.9);
   }
-
-  /* Week unavailable banner */
-  .week-unavail-banner {
-    background: #fef3c7;
-    color: #92400e;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 16px;
-    text-align: center;
-    display: none;
-  }
-  .week-unavail-banner.show { display: block; }
 
   /* Content */
   .content {
@@ -183,14 +185,54 @@
     padding-bottom: 100px;
   }
 
-  /* Empty state */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
+  /* ââ KW OVERVIEW ââ */
+  .kw-overview-title {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 14px;
+    padding: 0 2px;
   }
-  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-state p { font-size: 15px; }
+
+  .kw-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    -webkit-user-select: none;
+    user-select: none;
+    border: 1.5px solid transparent;
+  }
+  .kw-card:active {
+    transform: scale(0.985);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  }
+  .kw-card-left {}
+  .kw-card-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .kw-card-range {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: block;
+  }
+  .kw-card-arrow {
+    font-size: 20px;
+    color: var(--primary);
+    opacity: 0.6;
+  }
 
   /* No weeks message */
   .no-weeks-msg {
@@ -207,86 +249,85 @@
     line-height: 1.6;
   }
 
-  /* Entry cards */
-  .entry-card {
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 15px; }
+
+  /* ââ WEEK VIEW ââ */
+  .week-day-block {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 16px;
     margin-bottom: 10px;
+    overflow: hidden;
     box-shadow: var(--shadow);
+  }
+  .week-day-header {
     display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    cursor: pointer;
-    transition: transform 0.1s;
-    -webkit-user-select: none;
-    user-select: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
   }
-  .entry-card:active { transform: scale(0.985); }
-
-  .entry-time {
-    min-width: 62px;
-    text-align: center;
-    padding-top: 2px;
-  }
-  .entry-time .time-range {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--primary);
-    display: block;
-  }
-  .entry-time .time-pause {
+  .week-day-header.today { background: var(--primary-light); }
+  .week-day-label { font-size: 14px; font-weight: 700; color: var(--text); }
+  .week-day-label.today-label { color: var(--primary); }
+  .week-day-date { font-size: 12px; color: var(--text-muted); }
+  .week-day-badge {
+    background: var(--primary);
+    color: #fff;
     font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 3px;
-    display: block;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 22px;
+    text-align: center;
   }
-
-  .entry-divider {
-    width: 1px;
-    align-self: stretch;
-    background: var(--border);
-  }
-
-  .entry-info { flex: 1; min-width: 0; }
-  .entry-customer {
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .entry-activity {
+  .week-day-badge.empty { background: var(--border); color: var(--text-muted); }
+  .week-day-entries { padding: 8px 12px 4px; }
+  .week-entry-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border);
     font-size: 13px;
-    color: var(--text-muted);
-    margin-top: 3px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-radius: 6px;
+    margin: 0 -4px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
-  .entry-comment {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-style: italic;
+  .week-entry-row:last-child { border-bottom: none; }
+  .week-entry-row:active { background: var(--primary-light); }
+  .week-entry-time { color: var(--primary); font-weight: 700; min-width: 80px; font-size: 12px; flex-shrink: 0; }
+  .week-entry-info { flex: 1; min-width: 0; }
+  .week-entry-customer { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .week-entry-act { font-size: 11px; color: var(--text-muted); }
+  .week-empty { padding: 10px 4px; color: var(--text-muted); font-size: 13px; text-align: center; }
+  .week-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 11px;
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    border-top: 1px solid var(--border);
+    transition: background 0.1s;
   }
-
-  .synced-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    margin-top: 4px;
-    flex-shrink: 0;
-  }
-  .unsynced-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    margin-top: 4px;
-    flex-shrink: 0;
-  }
+  .week-add-btn:active { background: var(--primary-light); }
 
   /* FAB */
   .fab {
@@ -503,7 +544,7 @@
   /* Toast */
   .toast {
     position: fixed;
-    bottom: 100px;
+    bottom: 40px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
     background: #1a1f36;
@@ -540,179 +581,22 @@
     pointer-events: none;
   }
 
-  /* ââ BOTTOM NAV ââ */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--card);
-    border-top: 1px solid var(--border);
-    display: flex;
-    z-index: 150;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  .nav-tab {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0 8px;
-    cursor: pointer;
-    border: none;
-    background: none;
-    color: var(--text-muted);
-    font-size: 11px;
-    font-family: inherit;
-    gap: 3px;
-    transition: color 0.15s;
-  }
-  .nav-tab.active { color: var(--primary); }
-  .nav-tab .nav-icon { font-size: 20px; line-height: 1; }
-
-  /* ââ WEEK VIEW ââ */
-  /* KW selector row */
-  .kw-selector {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 12px 16px 4px;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  .kw-selector::-webkit-scrollbar { display: none; }
-
-  .kw-chip {
+  /* Synced/unsynced dots (used in entry rendering) */
+  .synced-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: 4px;
     flex-shrink: 0;
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 20px;
-    padding: 7px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    color: var(--text);
-    white-space: nowrap;
-    transition: all 0.15s;
   }
-  .kw-chip.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
-  }
-  .kw-chip:active { transform: scale(0.94); }
-
-  .week-day-block {
-    background: var(--card);
-    border-radius: var(--radius);
-    margin-bottom: 10px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-  }
-  .week-day-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid var(--border);
-  }
-  .week-day-header.today { background: var(--primary-light); }
-  .week-day-label { font-size: 14px; font-weight: 700; color: var(--text); }
-  .week-day-label.today-label { color: var(--primary); }
-  .week-day-date { font-size: 12px; color: var(--text-muted); }
-  .week-day-badge {
-    background: var(--primary);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 10px;
-    min-width: 22px;
-    text-align: center;
-  }
-  .week-day-badge.empty { background: var(--border); color: var(--text-muted); }
-  .week-day-entries { padding: 8px 12px 10px; }
-  .week-entry-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-  .week-entry-row:last-child { border-bottom: none; }
-  .week-entry-time { color: var(--primary); font-weight: 700; min-width: 80px; font-size: 12px; }
-  .week-entry-info { flex: 1; min-width: 0; }
-  .week-entry-customer { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .week-entry-act { font-size: 11px; color: var(--text-muted); }
-  .week-empty { padding: 10px 0; color: var(--text-muted); font-size: 13px; text-align: center; }
-  .week-add-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    padding: 10px;
-    background: none;
-    border: none;
-    color: var(--primary);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ââ SYNC STATUS ââ */
-  .status-section { margin-bottom: 20px; }
-  .status-emp-header {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    padding: 0 4px;
-  }
-  .status-card {
-    background: var(--card);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 8px;
-    box-shadow: var(--shadow);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .status-kw { font-size: 15px; font-weight: 700; }
-  .status-count {
-    background: #fef3c7;
-    color: #92400e;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 10px;
-  }
-  .status-all-synced {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-muted);
-  }
-  .status-all-synced .icon { font-size: 48px; margin-bottom: 12px; }
-  .status-refresh-btn {
-    display: block;
-    margin: 0 auto 16px;
-    background: var(--primary-light);
-    color: var(--primary);
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: inherit;
+  .unsynced-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    margin-top: 4px;
+    flex-shrink: 0;
   }
 </style>
 </head>
@@ -731,56 +615,48 @@
 
 <!-- ââ MAIN APP SCREEN ââ -->
 <div id="screen-main" class="screen">
-  <div class="app-header">
+
+  <!-- Header: KW Overview mode (default) -->
+  <div class="app-header" id="header-overview">
     <div class="header-top">
       <span class="app-title">Stundenerfassung</span>
-      <button class="employee-chip" id="change-employee-btn" onclick="changeEmployee()">
+      <button class="employee-chip" onclick="changeEmployee()">
         <span id="header-kuerzel">--</span>
       </button>
     </div>
+  </div>
+
+  <!-- Header: Week view mode (hidden until KW selected) -->
+  <div class="app-header" id="header-weekview" style="display:none">
+    <div class="header-top">
+      <button class="header-back-btn" onclick="showKWOverview()">&#8592; Ãbersicht</button>
+      <span class="header-center-title" id="weekview-kw-title">KW -- / ----</span>
+      <div class="header-right-placeholder"></div>
+    </div>
     <div class="date-nav">
-      <button class="nav-btn" onclick="changeDay(-1)">â¹</button>
-      <div class="date-display" onclick="openDatePicker()">
-        <span class="date-main" id="display-date">--</span>
-        <span class="date-sub" id="display-week">--</span>
-        <span class="today-btn" id="today-btn" onclick="goToToday(event)">Heute</span>
+      <button class="nav-btn" id="nav-prev-kw" onclick="navigateKW(-1)">&#8249;</button>
+      <div class="date-display">
+        <span class="date-main" id="weekview-date-range">--</span>
       </div>
-      <button class="nav-btn" onclick="changeDay(1)">âº</button>
+      <button class="nav-btn" id="nav-next-kw" onclick="navigateKW(1)">&#8250;</button>
     </div>
-    <div id="week-unavail-banner" class="week-unavail-banner">â  Diese Woche hat kein Stundenblatt</div>
   </div>
 
-  <div class="content" id="entries-list">
+  <!-- KW Overview content -->
+  <div class="content" id="kw-overview-content">
     <div class="empty-state">
-      <div class="icon">ð</div>
-      <p>Lade EintrÃ¤geâ¦</p>
+      <div class="icon">&#8987;</div>
+      <p>Lade&#8230;</p>
     </div>
   </div>
 
-  <!-- Week view (hidden by default) -->
-  <div class="content" id="week-list" style="display:none"></div>
+  <!-- Week view content (hidden until KW selected) -->
+  <div class="content" id="week-view-content" style="display:none"></div>
 
-  <!-- Sync status view (hidden by default) -->
-  <div class="content" id="status-list" style="display:none">
-    <button class="status-refresh-btn" onclick="loadSyncStatus()">â» Aktualisieren</button>
-    <div id="status-content"></div>
-  </div>
+  <!-- FAB: only visible in week view -->
+  <button class="fab" id="fab-btn" onclick="openNewEntry()" style="display:none">+</button>
 
-  <button class="fab" id="fab-btn" onclick="openNewEntry()">+</button>
-  <input type="date" id="date-picker-input" onchange="onDatePicked(this.value)">
-
-  <!-- Bottom Navigation -->
-  <nav class="bottom-nav">
-    <button class="nav-tab active" id="tab-day" onclick="switchTab('day')">
-      <span class="nav-icon">ð</span>Tag
-    </button>
-    <button class="nav-tab" id="tab-week" onclick="switchTab('week')">
-      <span class="nav-icon">ð</span>Woche
-    </button>
-    <button class="nav-tab" id="tab-status" onclick="switchTab('status')">
-      <span class="nav-icon">ð</span>Sync
-    </button>
-  </nav>
+  <input type="date" id="date-picker-input">
 </div>
 
 <!-- ââ ENTRY MODAL ââ -->
@@ -789,7 +665,7 @@
     <div class="modal-handle"></div>
     <div class="modal-header">
       <h2 id="modal-title">Neuer Eintrag</h2>
-      <button class="close-btn" onclick="closeModal()">â</button>
+      <button class="close-btn" onclick="closeModal()">&#10005;</button>
     </div>
     <div class="modal-body">
       <form id="entry-form" onsubmit="saveEntry(event)">
@@ -798,7 +674,7 @@
         <div class="form-group">
           <label>Kundenname</label>
           <div class="customer-search-wrap">
-            <input type="text" id="f-kundenname" placeholder="Kunden suchenâ¦"
+            <input type="text" id="f-kundenname" placeholder="Kunden suchen&#8230;"
                    autocomplete="off" oninput="searchCustomers(this.value)"
                    onfocus="searchCustomers(this.value)">
             <div id="customer-results"></div>
@@ -818,7 +694,7 @@
         <!-- Comment -->
         <div class="form-group">
           <label>Was wurde gemacht?</label>
-          <textarea id="f-kommentar" placeholder="Kurze Beschreibung der Arbeitâ¦"></textarea>
+          <textarea id="f-kommentar" placeholder="Kurze Beschreibung der Arbeit&#8230;"></textarea>
         </div>
 
         <!-- Times -->
@@ -864,10 +740,9 @@ let currentDate = todayStr();
 let editingEntryId = null;
 let allCustomers = [];
 let allActivities = [];
-let currentEntries = [];
-let currentTab = 'day';
+let currentEntries = []; // entries for currently open modal's day context
 let availableWeeks = [];
-let selectedWeek = null;
+let currentWeek = null; // { year, week } of the currently displayed week view
 
 // ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 window.addEventListener('DOMContentLoaded', async () => {
@@ -880,25 +755,31 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// ââ Static Data âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function loadStaticData() {
-  const [customers, activities] = await Promise.all([
-    fetch('/api/customers').then(r => r.json()),
-    fetch('/api/activities').then(r => r.json())
-  ]);
-  allCustomers = customers;
-  allActivities = activities;
+  try {
+    const [customers, activities] = await Promise.all([
+      fetch('/api/customers').then(r => r.json()),
+      fetch('/api/activities').then(r => r.json())
+    ]);
+    allCustomers = customers;
+    allActivities = activities;
 
-  const sel = document.getElementById('f-aktivitaet');
-  sel.innerHTML = '<option value="">-- WÃ¤hlen --</option>';
-  activities.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a.name;
-    opt.dataset.code = a.code;
-    opt.textContent = a.name;
-    sel.appendChild(opt);
-  });
+    const sel = document.getElementById('f-aktivitaet');
+    sel.innerHTML = '<option value="">-- WÃ¤hlen --</option>';
+    activities.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.name;
+      opt.dataset.code = a.code;
+      opt.textContent = a.name;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    // continue even if static data fails
+  }
 }
 
+// ââ Employee ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function renderEmployeeGrid() {
   const employees = await fetch('/api/employees').then(r => r.json());
   const grid = document.getElementById('employee-grid');
@@ -917,15 +798,16 @@ async function selectEmployee(emp) {
   localStorage.setItem('employee', JSON.stringify(emp));
   document.getElementById('header-kuerzel').textContent = emp.id;
   showScreen('main');
-  currentDate = todayStr();
-  renderDate();
+  // Load KW overview
   await fetchAvailableWeeks();
-  loadEntries();
+  renderKWOverview();
 }
 
 function changeEmployee() {
   localStorage.removeItem('employee');
   currentEmployee = null;
+  currentWeek = null;
+  availableWeeks = [];
   renderEmployeeGrid();
   showScreen('employee');
 }
@@ -935,7 +817,7 @@ function showScreen(name) {
   document.getElementById('screen-' + name).classList.add('active');
 }
 
-// ââ Available Weeks ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ââ Available Weeks âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 async function fetchAvailableWeeks() {
   try {
     const data = await fetch(`/api/available-weeks?employee=${currentEmployee.id}`).then(r => r.json());
@@ -943,195 +825,138 @@ async function fetchAvailableWeeks() {
   } catch (e) {
     availableWeeks = [];
   }
-  updateWeekAvailBanner();
 }
 
-function isWeekAvailable(dateStr) {
-  if (!availableWeeks.length) return false;
-  const [y, w] = getISOWeek(dateStr);
-  return availableWeeks.some(aw => aw.year === y && aw.week === w);
-}
+// ââ KW Overview âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function renderKWOverview() {
+  // Show overview header, hide week view header
+  document.getElementById('header-overview').style.display = '';
+  document.getElementById('header-weekview').style.display = 'none';
 
-function updateWeekAvailBanner() {
-  const banner = document.getElementById('week-unavail-banner');
-  if (!banner) return;
-  if (availableWeeks.length > 0 && !isWeekAvailable(currentDate)) {
-    banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
-  }
-}
+  // Show overview content, hide week view content
+  document.getElementById('kw-overview-content').style.display = '';
+  document.getElementById('week-view-content').style.display = 'none';
 
-function getMondayOfWeek(year, week) {
-  const jan4 = new Date(year, 0, 4);
-  const startOfWeek1 = new Date(jan4);
-  startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
-  const monday = new Date(startOfWeek1);
-  monday.setDate(startOfWeek1.getDate() + (week - 1) * 7);
-  return monday.toISOString().slice(0, 10);
-}
+  // Hide FAB in overview
+  document.getElementById('fab-btn').style.display = 'none';
 
-function selectKW(year, week) {
-  const monday = getMondayOfWeek(year, week);
-  currentDate = monday;
-  selectedWeek = { year, week };
-  renderDate();
-  loadWeekView();
-  updateWeekAvailBanner();
-}
+  const container = document.getElementById('kw-overview-content');
 
-// ââ Date âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-  const months = ['Jan', 'Feb', 'MÃ¤r', 'Apr', 'Mai', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-  return `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function getKW(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  const jan4 = new Date(d.getFullYear(), 0, 4);
-  const startOfWeek1 = new Date(jan4);
-  startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
-  const diff = d - startOfWeek1;
-  const kw = Math.floor(diff / (7 * 86400000)) + 1;
-  return `KW ${kw} / ${d.getFullYear()}`;
-}
-
-function renderDate() {
-  document.getElementById('display-date').textContent = formatDate(currentDate);
-  document.getElementById('display-week').textContent = getKW(currentDate);
-  const todayBtn = document.getElementById('today-btn');
-  todayBtn.style.display = currentDate === todayStr() ? 'none' : 'inline-block';
-}
-
-function changeDay(delta) {
-  if (currentTab === 'week') {
-    if (availableWeeks.length > 0) {
-      // Nur zwischen verfügbaren KWs navigieren
-      const [curYear, curWeek] = getISOWeek(currentDate);
-      const sorted = [...availableWeeks].sort((a, b) =>
-        a.year !== b.year ? a.year - b.year : a.week - b.week
-      );
-      let idx = sorted.findIndex(aw => aw.year === curYear && aw.week === curWeek);
-      if (idx === -1) {
-        idx = delta > 0 ? -1 : sorted.length;
-      }
-      const nextIdx = idx + delta;
-      if (nextIdx >= 0 && nextIdx < sorted.length) {
-        selectKW(sorted[nextIdx].year, sorted[nextIdx].week);
-      }
-    } else {
-      // Keine KW-Liste bekannt: ganze Woche springen
-      const d = new Date(currentDate + 'T12:00:00');
-      d.setDate(d.getDate() + delta * 7);
-      currentDate = d.toISOString().slice(0, 10);
-      renderDate();
-      loadWeekView();
-    }
+  if (!availableWeeks.length) {
+    container.innerHTML = `
+      <div class="no-weeks-msg">
+        <div class="icon">&#128194;</div>
+        <p>Keine StundenblÃ¤tter gefunden.<br>Bitte Sync ausfÃ¼hren.</p>
+      </div>`;
     return;
   }
-  const d = new Date(currentDate + 'T12:00:00');
-  d.setDate(d.getDate() + delta);
-  currentDate = d.toISOString().slice(0, 10);
-  renderDate();
-  updateWeekAvailBanner();
-  loadEntries();
+
+  // Sort weeks ascending
+  const sorted = [...availableWeeks].sort((a, b) =>
+    a.year !== b.year ? a.year - b.year : a.week - b.week
+  );
+
+  let html = '<div class="kw-overview-title">Meine Kalenderwochen</div>';
+  container.innerHTML = html;
+
+  sorted.forEach(aw => {
+    const monday = getMondayOfWeek(aw.year, aw.week);
+    const sunday = getWeekDates(monday)[6];
+    const range = formatDateRange(monday, sunday);
+
+    const card = document.createElement('div');
+    card.className = 'kw-card';
+    card.innerHTML = `
+      <div class="kw-card-left">
+        <span class="kw-card-label">KW ${String(aw.week).padStart(2, '0')} / ${aw.year}</span>
+        <span class="kw-card-range">${range}</span>
+      </div>
+      <span class="kw-card-arrow">&#8594;</span>
+    `;
+    card.onclick = () => openWeekView(aw.year, aw.week);
+    container.appendChild(card);
+  });
 }
 
-function goToToday(e) {
-  e.stopPropagation();
-  currentDate = todayStr();
-  renderDate();
-  updateWeekAvailBanner();
-  loadEntries();
-}
-
-function openDatePicker() {
-  const inp = document.getElementById('date-picker-input');
-  inp.value = currentDate;
-  inp.click();
-}
-
-function onDatePicked(val) {
-  if (val) {
-    currentDate = val;
-    renderDate();
-    updateWeekAvailBanner();
-    loadEntries();
-  }
-}
-
-// ââ Tab Navigation ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-
-  document.getElementById('entries-list').style.display = tab === 'day' ? '' : 'none';
-  document.getElementById('week-list').style.display = tab === 'week' ? '' : 'none';
-  document.getElementById('status-list').style.display = tab === 'status' ? '' : 'none';
-  document.getElementById('fab-btn').style.display = tab === 'status' ? 'none' : '';
-
-  if (tab === 'week') loadWeekView();
-  if (tab === 'status') loadSyncStatus();
+function showKWOverview() {
+  currentWeek = null;
+  renderKWOverview();
 }
 
 // ââ Week View âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function getWeekDates(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  const day = d.getDay() === 0 ? 7 : d.getDay();
-  const monday = new Date(d);
-  monday.setDate(d.getDate() - (day - 1));
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const dd = new Date(monday);
-    dd.setDate(monday.getDate() + i);
-    days.push(dd.toISOString().slice(0, 10));
-  }
-  return days;
+function openWeekView(year, week) {
+  currentWeek = { year, week };
+  const monday = getMondayOfWeek(year, week);
+  currentDate = monday;
+
+  // Show week view header, hide overview header
+  document.getElementById('header-overview').style.display = 'none';
+  document.getElementById('header-weekview').style.display = '';
+
+  // Show week view content, hide overview
+  document.getElementById('kw-overview-content').style.display = 'none';
+  document.getElementById('week-view-content').style.display = '';
+
+  // Show FAB
+  document.getElementById('fab-btn').style.display = '';
+
+  updateWeekViewHeader();
+  loadWeekView();
+}
+
+function updateWeekViewHeader() {
+  if (!currentWeek) return;
+  const { year, week } = currentWeek;
+  document.getElementById('weekview-kw-title').textContent =
+    `KW ${String(week).padStart(2, '0')} / ${year}`;
+
+  const monday = getMondayOfWeek(year, week);
+  const sunday = getWeekDates(monday)[6];
+  document.getElementById('weekview-date-range').textContent = formatDateRange(monday, sunday);
+
+  // Update arrow button states
+  const sorted = getSortedWeeks();
+  const idx = sorted.findIndex(aw => aw.year === year && aw.week === week);
+  document.getElementById('nav-prev-kw').disabled = idx <= 0;
+  document.getElementById('nav-next-kw').disabled = idx < 0 || idx >= sorted.length - 1;
+}
+
+function navigateKW(delta) {
+  if (!currentWeek) return;
+  const sorted = getSortedWeeks();
+  const idx = sorted.findIndex(aw => aw.year === currentWeek.year && aw.week === currentWeek.week);
+  if (idx === -1) return;
+  const nextIdx = idx + delta;
+  if (nextIdx < 0 || nextIdx >= sorted.length) return;
+  const next = sorted[nextIdx];
+  openWeekView(next.year, next.week);
+}
+
+function getSortedWeeks() {
+  return [...availableWeeks].sort((a, b) =>
+    a.year !== b.year ? a.year - b.year : a.week - b.week
+  );
 }
 
 async function loadWeekView() {
-  const container = document.getElementById('week-list');
-  container.innerHTML = '<div class="empty-state"><div class="icon">â³</div><p>Lade Wocheâ¦</p></div>';
+  const container = document.getElementById('week-view-content');
+  container.innerHTML = '<div class="empty-state"><div class="icon">&#8987;</div><p>Lade Woche&#8230;</p></div>';
 
-  const d = new Date(currentDate + 'T12:00:00');
-  const iso = getISOWeek(currentDate);
-  const year = iso[0], week = iso[1];
+  if (!currentWeek) return;
+  const { year, week } = currentWeek;
 
   try {
     const entries = await fetch(
       `/api/entries/week?employee=${currentEmployee.id}&year=${year}&week=${week}`
     ).then(r => r.json());
 
-    const weekDates = getWeekDates(currentDate);
+    const weekDates = getWeekDates(getMondayOfWeek(year, week));
     const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     const months = ['Jan','Feb','MÃ¤r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
     const today = todayStr();
 
     container.innerHTML = '';
 
-    // Build KW selector HTML
-    let kwSelectorHtml = '<div class="kw-selector" id="kw-selector">';
-    if (availableWeeks.length === 0) {
-      kwSelectorHtml += '<div class="no-weeks-msg" style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px;">ð Keine StundenblÃ¤tter. Bitte sync ausfÃ¼hren.</div>';
-    } else {
-      const [curYear, curWeek] = getISOWeek(currentDate);
-      availableWeeks.forEach(aw => {
-        const isActive = aw.year === curYear && aw.week === curWeek;
-        kwSelectorHtml += `<button class="kw-chip${isActive ? ' active' : ''}" onclick="selectKW(${aw.year}, ${aw.week})">KW ${String(aw.week).padStart(2,'0')} / ${aw.year}</button>`;
-      });
-    }
-    kwSelectorHtml += '</div>';
-    container.innerHTML = kwSelectorHtml;
-
-    // Add week day blocks
     weekDates.forEach((dateStr, idx) => {
       const dayEntries = entries.filter(e => e.datum === dateStr);
       const isToday = dateStr === today;
@@ -1151,58 +976,82 @@ async function loadWeekView() {
       } else {
         dayEntries.forEach(e => {
           entriesHtml += `
-            <div class="week-entry-row" onclick="goToDayEntry('${dateStr}', ${e.id})">
-              <div class="week-entry-time">${e.von || '?'}â${e.bis || '?'}</div>
+            <div class="week-entry-row" onclick="openEditEntryById(${e.id}, ${JSON.stringify(dayEntries).replace(/"/g, '&quot;')}, '${dateStr}')">
+              <div class="week-entry-time">${e.von || '?'}&#8211;${e.bis || '?'}</div>
               <div class="week-entry-info">
                 <div class="week-entry-customer">${e.kundenname || '(kein Kunde)'}</div>
-                <div class="week-entry-act">${e.aktivitaet || ''}${e.kommentar ? ' Â· ' + e.kommentar : ''}</div>
+                <div class="week-entry-act">${e.aktivitaet || ''}${e.kommentar ? ' &middot; ' + e.kommentar : ''}</div>
               </div>
             </div>`;
         });
       }
 
       block.innerHTML = `
-        <div class="${headerClass}" onclick="goToDay('${dateStr}')">
+        <div class="${headerClass}">
           <div>
             <span class="${labelClass}">${days[idx]}</span>
-            <span class="week-day-date"> Â· ${dateLabel}</span>
+            <span class="week-day-date"> &middot; ${dateLabel}</span>
           </div>
           <span class="${badgeClass}">${dayEntries.length}</span>
         </div>
         <div class="week-day-entries">${entriesHtml}</div>
-        <button class="week-add-btn" onclick="goToDay('${dateStr}'); setTimeout(openNewEntry, 300)">
+        <button class="week-add-btn" onclick="openNewEntry('${dateStr}')">
           + Eintrag hinzufÃ¼gen
         </button>`;
 
       container.appendChild(block);
     });
+
   } catch (e) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">â ï¸</div><p>Verbindungsfehler</p></div>';
+    container.innerHTML = '<div class="empty-state"><div class="icon">&#9888;&#65039;</div><p>Verbindungsfehler</p></div>';
   }
 }
 
-function goToDay(dateStr) {
-  currentDate = dateStr;
-  renderDate();
-  updateWeekAvailBanner();
-  switchTab('day');
-  loadEntries();
+// Helper: open edit modal for an entry by id, given the list of entries for that day
+function openEditEntryById(entryId, entriesJson, dateStr) {
+  let entries;
+  try {
+    entries = typeof entriesJson === 'string' ? JSON.parse(entriesJson) : entriesJson;
+  } catch (e) {
+    entries = [];
+  }
+  const entry = entries.find(e => e.id === entryId);
+  if (entry) {
+    currentDate = dateStr;
+    currentEntries = entries;
+    openEditEntry(entry);
+  }
 }
 
-function goToDayEntry(dateStr, entryId) {
-  currentDate = dateStr;
-  renderDate();
-  updateWeekAvailBanner();
-  switchTab('day');
-  loadEntries().then(() => {
-    const entry = currentEntries.find(e => e.id === entryId);
-    if (entry) openEditEntry(entry);
-  });
+// ââ Date Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const months = ['Jan', 'Feb', 'MÃ¤r', 'Apr', 'Mai', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  return `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatShortDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  const pad = n => String(n).padStart(2, '0');
+  return `${days[d.getDay()]} ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`;
+}
+
+function formatDateRange(mondayStr, sundayStr) {
+  const mo = new Date(mondayStr + 'T12:00:00');
+  const su = new Date(sundayStr + 'T12:00:00');
+  const pad = n => String(n).padStart(2, '0');
+  return `Mo ${pad(mo.getDate())}.${pad(mo.getMonth() + 1)}. â So ${pad(su.getDate())}.${pad(su.getMonth() + 1)}.`;
 }
 
 function getISOWeek(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
-  const iso = d.toISOString ? null : null;
   const jan4 = new Date(d.getFullYear(), 0, 4);
   const startOfWeek1 = new Date(jan4);
   startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
@@ -1219,107 +1068,37 @@ function getISOWeek(dateStr) {
   return [d.getFullYear(), week];
 }
 
-// ââ Sync Status âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-async function loadSyncStatus() {
-  const content = document.getElementById('status-content');
-  content.innerHTML = '<div class="empty-state"><div class="icon">â³</div><p>Lade Statusâ¦</p></div>';
-
-  try {
-    const data = await fetch('/api/sync-status').then(r => r.json());
-
-    if (!data.length) {
-      content.innerHTML = `
-        <div class="status-all-synced">
-          <div class="icon">â</div>
-          <p>Alle EintrÃ¤ge sind synchronisiert.</p>
-        </div>`;
-      return;
-    }
-
-    const byEmp = {};
-    data.forEach(item => {
-      if (!byEmp[item.employee_id]) byEmp[item.employee_id] = [];
-      byEmp[item.employee_id].push(item);
-    });
-
-    content.innerHTML = '';
-    for (const [empId, weeks] of Object.entries(byEmp)) {
-      const section = document.createElement('div');
-      section.className = 'status-section';
-      section.innerHTML = `<div class="status-emp-header">${empId}</div>`;
-
-      weeks.forEach(w => {
-        const card = document.createElement('div');
-        card.className = 'status-card';
-        card.innerHTML = `
-          <span class="status-kw">${w.kw_label}</span>
-          <span class="status-count">${w.unsynced_count} nicht synchronisiert</span>`;
-        section.appendChild(card);
-      });
-
-      content.appendChild(section);
-    }
-  } catch (e) {
-    content.innerHTML = '<div class="empty-state"><div class="icon">â ï¸</div><p>Verbindungsfehler</p></div>';
-  }
+function getMondayOfWeek(year, week) {
+  const jan4 = new Date(year, 0, 4);
+  const startOfWeek1 = new Date(jan4);
+  startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
+  const monday = new Date(startOfWeek1);
+  monday.setDate(startOfWeek1.getDate() + (week - 1) * 7);
+  return monday.toISOString().slice(0, 10);
 }
 
-// ââ Entries âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-async function loadEntries() {
-  const container = document.getElementById('entries-list');
-  container.innerHTML = '<div class="empty-state"><div class="icon">â³</div><p>Ladeâ¦</p></div>';
-  try {
-    const entries = await fetch(`/api/entries?employee=${currentEmployee.id}&date=${currentDate}`).then(r => r.json());
-    renderEntries(entries);
-    return entries;
-  } catch (e) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">â ï¸</div><p>Verbindungsfehler</p></div>';
-    return [];
+function getWeekDates(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const day = d.getDay() === 0 ? 7 : d.getDay();
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - (day - 1));
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const dd = new Date(monday);
+    dd.setDate(monday.getDate() + i);
+    days.push(dd.toISOString().slice(0, 10));
   }
-}
-
-function renderEntries(entries) {
-  currentEntries = entries;
-  const container = document.getElementById('entries-list');
-  if (!entries.length) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="icon">ð</div>
-        <p>Noch keine EintrÃ¤ge fÃ¼r diesen Tag.</p>
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = '';
-  entries.forEach(e => {
-    const card = document.createElement('div');
-    card.className = 'entry-card';
-    card.onclick = () => openEditEntry(e);
-
-    const pauseLabel = e.pause ? `${e.pause} min Pause` : 'Keine Pause';
-    const synced = e.synced
-      ? '<div class="synced-dot" title="Synchronisiert"></div>'
-      : '<div class="unsynced-dot" title="Noch nicht synchronisiert"></div>';
-
-    card.innerHTML = `
-      <div class="entry-time">
-        <span class="time-range">${e.von || '?'}â${e.bis || '?'}</span>
-        <span class="time-pause">${pauseLabel}</span>
-      </div>
-      <div class="entry-divider"></div>
-      <div class="entry-info">
-        <div class="entry-customer">${e.kundenname || '(kein Kunde)'}</div>
-        <div class="entry-activity">${e.aktivitaet || ''}</div>
-        ${e.kommentar ? `<div class="entry-comment">${e.kommentar}</div>` : ''}
-      </div>
-      ${synced}
-    `;
-    container.appendChild(card);
-  });
+  return days;
 }
 
 // ââ Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-function openNewEntry() {
+function openNewEntry(dateStr) {
+  if (dateStr) {
+    currentDate = dateStr;
+    // Try to set currentEntries from the week view data for this day
+    // (we refresh from server anyway on save, so currentEntries here is just for defaultVon)
+    currentEntries = [];
+  }
   editingEntryId = null;
   document.getElementById('modal-title').textContent = 'Neuer Eintrag';
   document.getElementById('delete-btn').style.display = 'none';
@@ -1330,16 +1109,7 @@ function openNewEntry() {
   clearPauseBtns();
   document.getElementById('f-kundenname').value = '';
   document.getElementById('customer-results').style.display = 'none';
-  let defaultVon = '07:00';
-  if (currentEntries.length > 0) {
-    const lastBis = currentEntries
-      .filter(e => e.bis)
-      .map(e => e.bis)
-      .sort()
-      .pop();
-    if (lastBis) defaultVon = lastBis;
-  }
-  document.getElementById('f-von').value = defaultVon;
+  document.getElementById('f-von').value = '07:00';
   document.getElementById('f-bis').value = '';
   document.getElementById('entry-modal').classList.add('open');
 }
@@ -1461,7 +1231,8 @@ async function saveEntry(e) {
       body: JSON.stringify(payload)
     });
     closeModal();
-    loadEntries();
+    // Reload the week view to reflect changes
+    if (currentWeek) loadWeekView();
     showToast(editingEntryId ? 'Eintrag gespeichert â' : 'Eintrag hinzugefÃ¼gt â');
   } catch (err) {
     showToast('Fehler beim Speichern');
@@ -1476,7 +1247,7 @@ async function deleteEntry() {
   if (!confirm('Eintrag lÃ¶schen?')) return;
   await fetch(`/api/entries/${editingEntryId}`, { method: 'DELETE' });
   closeModal();
-  loadEntries();
+  if (currentWeek) loadWeekView();
   showToast('Eintrag gelÃ¶scht');
 }
 
