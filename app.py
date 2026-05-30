@@ -23,8 +23,8 @@ EMPLOYEES = [
 ]
 
 # ── Login / PIN ───────────────────────────────────────────────────────────
-# PINs koennen hier geaendert werden (danach neu deployen).
-EMPLOYEE_PINS = {
+# Start-PINs (werden bei leerer DB einmalig uebernommen; Aenderung danach ueber Admin-Seite).
+DEFAULT_PINS = {
     "JHE": "1234",
     "MTH": "2345",
     "ODY": "3456",
@@ -51,6 +51,24 @@ def valid_for(employee_id, token):
 
 def check_auth(employee_id):
     return valid_for(employee_id, request.headers.get('X-Auth-Token', ''))
+
+def is_admin_token(token):
+    return bool(token) and any(token == token_for(a) for a in ADMIN_IDS)
+
+def ensure_pins():
+    db = get_db()
+    db.execute("CREATE TABLE IF NOT EXISTS employee_pins (employee_id TEXT PRIMARY KEY, pin TEXT NOT NULL)")
+    if db.execute("SELECT COUNT(*) FROM employee_pins").fetchone()[0] == 0:
+        db.executemany("INSERT OR IGNORE INTO employee_pins (employee_id, pin) VALUES (?, ?)",
+                       list(DEFAULT_PINS.items()))
+    db.commit()
+    db.close()
+
+def get_pin(employee_id):
+    db = get_db()
+    row = db.execute("SELECT pin FROM employee_pins WHERE employee_id=?", (employee_id,)).fetchone()
+    db.close()
+    return str(row["pin"]) if row else None
 
 def get_db():
     db = sqlite3.connect(DATABASE)
@@ -147,12 +165,14 @@ def get_activities():
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    ensure_pins()
     data = request.get_json() or {}
     employee = data.get('employee')
     pin = str(data.get('pin', '')).strip()
-    if not employee or employee not in EMPLOYEE_PINS:
+    stored = get_pin(employee) if employee else None
+    if stored is None:
         return jsonify({"ok": False, "error": "Unbekanntes Kuerzel"}), 401
-    if pin != EMPLOYEE_PINS[employee]:
+    if pin != stored:
         return jsonify({"ok": False, "error": "Falsche PIN"}), 401
     return jsonify({
         "ok": True,
@@ -160,6 +180,44 @@ def login():
         "token": token_for(employee),
         "is_admin": employee in ADMIN_IDS
     })
+
+@app.route('/api/pins', methods=['GET'])
+def get_pins():
+    if not is_admin_token(request.headers.get('X-Auth-Token', '')):
+        return jsonify({"error": "unauthorized"}), 401
+    ensure_pins()
+    db = get_db()
+    rows = db.execute("SELECT employee_id, pin FROM employee_pins").fetchall()
+    db.close()
+    pins = {r["employee_id"]: r["pin"] for r in rows}
+    out = [{"id": e["id"], "name": e["name"], "pin": pins.get(e["id"], "")} for e in EMPLOYEES]
+    return jsonify(out)
+
+@app.route('/api/pins', methods=['POST'])
+def set_pins():
+    if not is_admin_token(request.headers.get('X-Auth-Token', '')):
+        return jsonify({"error": "unauthorized"}), 401
+    ensure_pins()
+    data = request.get_json() or {}
+    pins = data.get('pins', {})
+    valid_ids = {e["id"] for e in EMPLOYEES}
+    db = get_db()
+    count = 0
+    for emp, pin in pins.items():
+        if emp not in valid_ids:
+            continue
+        pin = str(pin).strip()
+        if not pin:
+            continue
+        db.execute(
+            "INSERT INTO employee_pins (employee_id, pin) VALUES (?, ?) "
+            "ON CONFLICT(employee_id) DO UPDATE SET pin=excluded.pin",
+            (emp, pin)
+        )
+        count += 1
+    db.commit()
+    db.close()
+    return jsonify({"ok": True, "updated": count})
 
 # -- Available Weeks ---------------------------------------------------------
 @app.route('/api/available-weeks', methods=['GET'])
