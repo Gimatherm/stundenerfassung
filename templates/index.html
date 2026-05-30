@@ -685,6 +685,24 @@
   </div>
 </div>
 
+<!-- ── PIN-VERWALTUNG (ADMIN) ── -->
+<div class="modal-overlay" id="pinadmin-modal" onclick="handlePinAdminOverlay(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2>PINs verwalten</h2>
+      <button class="close-btn" onclick="closePinAdmin()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div id="pinadmin-list"></div>
+      <div id="pinadmin-msg" style="font-size:13px;margin-top:4px;min-height:18px;"></div>
+      <div class="btn-row">
+        <button type="button" class="btn-primary" id="pinadmin-save" onclick="savePinAdmin()">Speichern</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── ENTRY MODAL ── -->
 <div class="modal-overlay" id="entry-modal" onclick="handleOverlayClick(event)">
   <div class="modal-sheet">
@@ -913,6 +931,63 @@ function logout() {
   showScreen('employee');
 }
 
+// ── PIN-Verwaltung (Admin) ──────────────────────────────────────────────────
+async function openPinAdmin() {
+  try {
+    const res = await fetch('/api/pins', { headers: authHeaders() });
+    if (!res.ok) { alert('Nur als Admin moeglich.'); return; }
+    const list = await res.json();
+    const c = document.getElementById('pinadmin-list');
+    c.innerHTML = '';
+    list.forEach(p => {
+      const g = document.createElement('div');
+      g.className = 'form-group';
+      g.innerHTML = `<label>${p.id} &ndash; ${p.name}</label>` +
+        `<input type="text" inputmode="numeric" maxlength="8" class="pinadmin-input" data-emp="${p.id}" value="${p.pin}">`;
+      c.appendChild(g);
+    });
+    document.getElementById('pinadmin-msg').textContent = '';
+    document.getElementById('pinadmin-modal').classList.add('open');
+  } catch (e) {
+    alert('Verbindungsfehler.');
+  }
+}
+function closePinAdmin() {
+  document.getElementById('pinadmin-modal').classList.remove('open');
+}
+function handlePinAdminOverlay(e) {
+  if (e.target === document.getElementById('pinadmin-modal')) closePinAdmin();
+}
+async function savePinAdmin() {
+  const pins = {};
+  document.querySelectorAll('.pinadmin-input').forEach(i => {
+    const v = i.value.trim();
+    if (v) pins[i.dataset.emp] = v;
+  });
+  const msg = document.getElementById('pinadmin-msg');
+  const btn = document.getElementById('pinadmin-save');
+  btn.disabled = true; btn.textContent = 'Speichere…';
+  try {
+    const res = await fetch('/api/pins', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+      body: JSON.stringify({ pins })
+    });
+    if (res.ok) {
+      msg.style.color = 'var(--green)';
+      msg.textContent = 'Gespeichert \u2713';
+      setTimeout(closePinAdmin, 900);
+    } else {
+      msg.style.color = 'var(--red)';
+      msg.textContent = 'Fehler beim Speichern';
+    }
+  } catch (e) {
+    msg.style.color = 'var(--red)';
+    msg.textContent = 'Verbindungsfehler';
+  }
+  btn.disabled = false; btn.textContent = 'Speichern';
+}
+
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
@@ -931,6 +1006,11 @@ async function fetchAvailableWeeks() {
 }
 
 // ── KW Overview ───────────────────────────────────────────────────────────────
+function adminBarHtml() {
+  if (!(auth && auth.is_admin)) return '';
+  return '<button onclick="openPinAdmin()" style="display:block;width:100%;margin-bottom:14px;background:var(--primary-light);color:var(--primary);border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">&#128273; PINs verwalten</button>';
+}
+
 async function renderKWOverview() {
   // Show overview header, hide week view header
   document.getElementById('header-overview').style.display = '';
@@ -946,7 +1026,7 @@ async function renderKWOverview() {
   const container = document.getElementById('kw-overview-content');
 
   if (!availableWeeks.length) {
-    container.innerHTML = `
+    container.innerHTML = adminBarHtml() + `
       <div class="no-weeks-msg">
         <div class="icon">&#128194;</div>
         <p>Keine Stundenblätter gefunden.<br>Bitte Sync ausführen.</p>
@@ -974,7 +1054,7 @@ async function renderKWOverview() {
     } catch (err) { hoursMap[`${aw.year}-${aw.week}`] = 0; }
   }));
 
-  let html = '<div class="kw-overview-title">Meine Kalenderwochen</div>';
+  let html = adminBarHtml() + '<div class="kw-overview-title">Meine Kalenderwochen</div>';
   container.innerHTML = html;
 
   sorted.forEach(aw => {
