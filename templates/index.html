@@ -828,7 +828,7 @@ async function fetchAvailableWeeks() {
 }
 
 // ── KW Overview ───────────────────────────────────────────────────────────────
-function renderKWOverview() {
+async function renderKWOverview() {
   // Show overview header, hide week view header
   document.getElementById('header-overview').style.display = '';
   document.getElementById('header-weekview').style.display = 'none';
@@ -856,6 +856,21 @@ function renderKWOverview() {
     a.year !== b.year ? a.year - b.year : a.week - b.week
   );
 
+  const hoursMap = {};
+  await Promise.all(sorted.map(async aw => {
+    try {
+      const es = await fetch(`/api/entries/week?employee=${currentEmployee.id}&year=${aw.year}&week=${aw.week}`).then(r => r.json());
+      let mins = 0;
+      es.forEach(e => {
+        const v = toMinutes(e.von), b = toMinutes(e.bis);
+        if (v === null || b === null) return;
+        let m = b - v; if (m < 0) m += 1440; m -= (e.pause || 0);
+        if (m > 0) mins += m;
+      });
+      hoursMap[`${aw.year}-${aw.week}`] = mins;
+    } catch (err) { hoursMap[`${aw.year}-${aw.week}`] = 0; }
+  }));
+
   let html = '<div class="kw-overview-title">Meine Kalenderwochen</div>';
   container.innerHTML = html;
 
@@ -871,7 +886,10 @@ function renderKWOverview() {
         <span class="kw-card-label">KW ${String(aw.week).padStart(2, '0')} / ${aw.year}</span>
         <span class="kw-card-range">${range}</span>
       </div>
-      <span class="kw-card-arrow">&#8594;</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;">${((hoursMap[`${aw.year}-${aw.week}`] || 0) / 60).toFixed(1).replace('.', ',')} Std</span>
+        <span class="kw-card-arrow">&#8594;</span>
+      </div>
     `;
     card.onclick = () => openWeekView(aw.year, aw.week);
     container.appendChild(card);
@@ -1053,6 +1071,15 @@ function formatDateRange(mondayStr, sundayStr) {
   return `Mo ${pad(mo.getDate())}.${pad(mo.getMonth() + 1)}. – So ${pad(su.getDate())}.${pad(su.getMonth() + 1)}.`;
 }
 
+function toMinutes(t) {
+  if (!t) return null;
+  const parts = String(t).split(':');
+  if (parts.length < 2) return null;
+  const h = parseInt(parts[0], 10), m = parseInt(parts[1], 10);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
+}
+
 function getISOWeek(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const jan4 = new Date(d.getFullYear(), 0, 4);
@@ -1215,6 +1242,12 @@ document.addEventListener('change', e => {
     const sel = e.target;
     const opt = sel.options[sel.selectedIndex];
     document.getElementById('f-akt-code').value = opt.dataset.code || '';
+    const ABWESENHEIT = ['Urlaub', 'Krankheit', 'Feiertag', 'Ausgleichsruhetag'];
+    if (ABWESENHEIT.includes(sel.value)) {
+      document.getElementById('f-von').value = '01:00';
+      document.getElementById('f-bis').value = '09:00';
+      setPause(0);
+    }
   }
 });
 
