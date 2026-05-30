@@ -13,7 +13,7 @@ DATABASE = os.environ.get('DATABASE_PATH', 'stundenerfassung.db')
 
 EMPLOYEES = [
     {"id": "JHE", "name": "Jan Heck"},
-    {"id": "MTH", "name": "Maxim Theatre"},
+    {"id": "MTH", "name": "Maxime Theatre"},
     {"id": "ODY", "name": "Odyseus Novak"},
     {"id": "PNS", "name": "Pascal Niessen"},
     {"id": "RHE", "name": "Romain Heindrichs"},
