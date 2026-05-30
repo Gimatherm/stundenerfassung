@@ -1011,19 +1011,28 @@ function renderDate() {
 }
 
 function changeDay(delta) {
-  if (currentTab === 'week' && availableWeeks.length > 0) {
-    // In Wochenansicht: nur zwischen verfügbaren KWs navigieren
-    const [curYear, curWeek] = getISOWeek(currentDate);
-    const sorted = [...availableWeeks].sort((a, b) =>
-      a.year !== b.year ? a.year - b.year : a.week - b.week
-    );
-    let idx = sorted.findIndex(aw => aw.year === curYear && aw.week === curWeek);
-    if (idx === -1) {
-      idx = delta > 0 ? -1 : sorted.length;
-    }
-    const nextIdx = idx + delta;
-    if (nextIdx >= 0 && nextIdx < sorted.length) {
-      selectKW(sorted[nextIdx].year, sorted[nextIdx].week);
+  if (currentTab === 'week') {
+    if (availableWeeks.length > 0) {
+      // Nur zwischen verfügbaren KWs navigieren
+      const [curYear, curWeek] = getISOWeek(currentDate);
+      const sorted = [...availableWeeks].sort((a, b) =>
+        a.year !== b.year ? a.year - b.year : a.week - b.week
+      );
+      let idx = sorted.findIndex(aw => aw.year === curYear && aw.week === curWeek);
+      if (idx === -1) {
+        idx = delta > 0 ? -1 : sorted.length;
+      }
+      const nextIdx = idx + delta;
+      if (nextIdx >= 0 && nextIdx < sorted.length) {
+        selectKW(sorted[nextIdx].year, sorted[nextIdx].week);
+      }
+    } else {
+      // Keine KW-Liste bekannt: ganze Woche springen
+      const d = new Date(currentDate + 'T12:00:00');
+      d.setDate(d.getDate() + delta * 7);
+      currentDate = d.toISOString().slice(0, 10);
+      renderDate();
+      loadWeekView();
     }
     return;
   }
