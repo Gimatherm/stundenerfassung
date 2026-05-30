@@ -959,6 +959,7 @@ async function loadWeekView() {
 
     weekDates.forEach((dateStr, idx) => {
       const dayEntries = entries.filter(e => e.datum === dateStr);
+      const lastBis = dayEntries.filter(e => e.bis).map(e => e.bis).sort().pop() || '';
       const isToday = dateStr === today;
       const dd = new Date(dateStr + 'T12:00:00');
       const dateLabel = `${dd.getDate()}. ${months[dd.getMonth()]}`;
@@ -977,7 +978,7 @@ async function loadWeekView() {
         dayEntries.forEach(e => {
           entriesHtml += `
             <div class="week-entry-row" onclick="openEditEntryById(${e.id}, ${JSON.stringify(dayEntries).replace(/"/g, '&quot;')}, '${dateStr}')">
-              <div class="week-entry-time">${e.von || '?'}&#8211;${e.bis || '?'}</div>
+              <div class="week-entry-time">${e.von || '?'}&#8211;${e.bis || '?'}${e.pause ? '<br><span style="font-weight:400;color:var(--text-muted);">' + e.pause + ' min Pause</span>' : ''}</div>
               <div class="week-entry-info">
                 <div class="week-entry-customer">${e.kundenname || '(kein Kunde)'}</div>
                 <div class="week-entry-act">${e.aktivitaet || ''}${e.kommentar ? ' &middot; ' + e.kommentar : ''}</div>
@@ -995,7 +996,7 @@ async function loadWeekView() {
           <span class="${badgeClass}">${dayEntries.length}</span>
         </div>
         <div class="week-day-entries">${entriesHtml}</div>
-        <button class="week-add-btn" onclick="openNewEntry('${dateStr}')">
+        <button class="week-add-btn" onclick="openNewEntry('${dateStr}', '${lastBis}')">
           + Eintrag hinzufügen
         </button>`;
 
@@ -1096,7 +1097,7 @@ function getWeekDates(dateStr) {
 }
 
 // ── Modal ────────────────────────────────────────────────────────────────────
-function openNewEntry(dateStr) {
+function openNewEntry(dateStr, defaultVon) {
   if (dateStr) {
     currentDate = dateStr;
     // Try to set currentEntries from the week view data for this day
@@ -1113,7 +1114,7 @@ function openNewEntry(dateStr) {
   clearPauseBtns();
   document.getElementById('f-kundenname').value = '';
   document.getElementById('customer-results').style.display = 'none';
-  document.getElementById('f-von').value = '07:00';
+  document.getElementById('f-von').value = defaultVon || '07:00';
   document.getElementById('f-bis').value = '';
   document.getElementById('entry-modal').classList.add('open');
 }
