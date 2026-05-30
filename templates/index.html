@@ -613,6 +613,7 @@
   <div class="employee-grid" id="employee-grid">
     <!-- filled by JS -->
   </div>
+  <button id="logout-btn" onclick="logout()" style="display:none; margin-top:28px; background:rgba(255,255,255,0.15); color:#fff; border:none; padding:10px 20px; border-radius:20px; font-size:13px; font-weight:600; cursor:pointer;">Abmelden</button>
 </div>
 
 <!-- ── MAIN APP SCREEN ── -->
@@ -659,6 +660,29 @@
   <button class="fab" id="fab-btn" onclick="openNewEntry()" style="display:none">+</button>
 
   <input type="date" id="date-picker-input">
+</div>
+
+<!-- ── PIN / LOGIN MODAL ── -->
+<div class="modal-overlay" id="pin-modal" onclick="handlePinOverlay(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2 id="pin-title">PIN eingeben</h2>
+      <button class="close-btn" onclick="closePinModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label id="pin-label">PIN</label>
+        <input type="password" id="pin-input" inputmode="numeric" autocomplete="off"
+               placeholder="&#8226;&#8226;&#8226;&#8226;"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();submitPin();}">
+        <div id="pin-error" style="color:var(--red);font-size:13px;margin-top:8px;display:none;"></div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn-primary" id="pin-submit" onclick="submitPin()">Anmelden</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── ENTRY MODAL ── -->
@@ -745,15 +769,26 @@ let allActivities = [];
 let currentEntries = []; // entries for currently open modal's day context
 let availableWeeks = [];
 let currentWeek = null; // { year, week } of the currently displayed week view
+let auth = null;          // { employee, token, is_admin }
+let allEmployees = [];
+
+function authHeaders() {
+  return (auth && auth.token) ? { 'X-Auth-Token': auth.token } : {};
+}
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
-  const saved = localStorage.getItem('employee');
   await loadStaticData();
-  if (saved) {
-    selectEmployee(JSON.parse(saved));
+  const savedAuth = localStorage.getItem('auth');
+  if (savedAuth) {
+    try { auth = JSON.parse(savedAuth); } catch (e) { auth = null; }
+  }
+  await renderEmployeeGrid();
+  if (auth && !auth.is_admin) {
+    const emp = allEmployees.find(e => e.id === auth.employee) || { id: auth.employee, name: auth.employee };
+    enterApp(emp);
   } else {
-    await renderEmployeeGrid();
+    showScreen('employee');
   }
 });
 
@@ -786,26 +821,90 @@ async function renderEmployeeGrid() {
   const employees = await fetch('/api/employees').then(r => r.json());
   const grid = document.getElementById('employee-grid');
   grid.innerHTML = '';
+  allEmployees = employees;
   employees.forEach(emp => {
     const btn = document.createElement('button');
     btn.className = 'employee-btn';
     btn.innerHTML = `<span class="kuerzel">${emp.id}</span><span class="fullname">${emp.name}</span>`;
-    btn.onclick = () => selectEmployee(emp);
+    btn.onclick = () => onEmployeeTile(emp);
     grid.appendChild(btn);
   });
+  const lo = document.getElementById('logout-btn');
+  if (lo) lo.style.display = auth ? 'inline-block' : 'none';
 }
 
-async function selectEmployee(emp) {
+function onEmployeeTile(emp) {
+  if (auth && (auth.is_admin || auth.employee === emp.id)) {
+    enterApp(emp);
+  } else {
+    openPinModal(emp);
+  }
+}
+
+function enterApp(emp) {
   currentEmployee = emp;
-  localStorage.setItem('employee', JSON.stringify(emp));
-  document.getElementById('header-kuerzel').textContent = emp.id;
+  document.getElementById('header-kuerzel').textContent = emp.id + (auth && auth.is_admin ? ' \u25be' : '');
   showScreen('main');
-  // Load KW overview
-  await fetchAvailableWeeks();
-  renderKWOverview();
+  fetchAvailableWeeks().then(() => renderKWOverview());
+}
+
+let pinEmployee = null;
+function openPinModal(emp) {
+  pinEmployee = emp;
+  document.getElementById('pin-title').textContent = emp.name;
+  document.getElementById('pin-label').textContent = 'PIN für ' + emp.id;
+  const inp = document.getElementById('pin-input');
+  inp.value = '';
+  document.getElementById('pin-error').style.display = 'none';
+  document.getElementById('pin-modal').classList.add('open');
+  setTimeout(() => inp.focus(), 100);
+}
+function closePinModal() {
+  document.getElementById('pin-modal').classList.remove('open');
+}
+function handlePinOverlay(e) {
+  if (e.target === document.getElementById('pin-modal')) closePinModal();
+}
+async function submitPin() {
+  if (!pinEmployee) return;
+  const pin = document.getElementById('pin-input').value.trim();
+  const errEl = document.getElementById('pin-error');
+  const btn = document.getElementById('pin-submit');
+  btn.disabled = true; btn.textContent = 'Prüfe…';
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employee: pinEmployee.id, pin })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      errEl.textContent = data.error || 'Anmeldung fehlgeschlagen';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Anmelden';
+      return;
+    }
+    auth = { employee: data.employee, token: data.token, is_admin: data.is_admin };
+    localStorage.setItem('auth', JSON.stringify(auth));
+    closePinModal();
+    enterApp(pinEmployee);
+  } catch (e) {
+    errEl.textContent = 'Verbindungsfehler';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Anmelden';
+  }
 }
 
 function changeEmployee() {
+  currentWeek = null;
+  availableWeeks = [];
+  renderEmployeeGrid();
+  showScreen('employee');
+}
+
+function logout() {
+  auth = null;
+  localStorage.removeItem('auth');
   localStorage.removeItem('employee');
   currentEmployee = null;
   currentWeek = null;
@@ -822,7 +921,9 @@ function showScreen(name) {
 // ── Available Weeks ───────────────────────────────────────────────────────────
 async function fetchAvailableWeeks() {
   try {
-    const data = await fetch(`/api/available-weeks?employee=${currentEmployee.id}`).then(r => r.json());
+    const res = await fetch(`/api/available-weeks?employee=${currentEmployee.id}`, { headers: authHeaders() });
+    if (res.status === 401) { logout(); availableWeeks = []; return; }
+    const data = await res.json();
     availableWeeks = Array.isArray(data) ? data : [];
   } catch (e) {
     availableWeeks = [];
@@ -861,7 +962,7 @@ async function renderKWOverview() {
   const hoursMap = {};
   await Promise.all(sorted.map(async aw => {
     try {
-      const es = await fetch(`/api/entries/week?employee=${currentEmployee.id}&year=${aw.year}&week=${aw.week}`).then(r => r.json());
+      const es = await fetch(`/api/entries/week?employee=${currentEmployee.id}&year=${aw.year}&week=${aw.week}`, { headers: authHeaders() }).then(r => r.json());
       let mins = 0;
       es.forEach(e => {
         const v = toMinutes(e.von), b = toMinutes(e.bis);
@@ -967,7 +1068,8 @@ async function loadWeekView() {
 
   try {
     const entries = await fetch(
-      `/api/entries/week?employee=${currentEmployee.id}&year=${year}&week=${week}`
+      `/api/entries/week?employee=${currentEmployee.id}&year=${year}&week=${week}`,
+      { headers: authHeaders() }
     ).then(r => r.json());
 
     const weekDates = getWeekDates(getMondayOfWeek(year, week));
@@ -1278,7 +1380,7 @@ async function saveEntry(e) {
     const method = editingEntryId ? 'PUT' : 'POST';
     await fetch(url, {
       method,
-      headers: {'Content-Type': 'application/json'},
+      headers: Object.assign({'Content-Type': 'application/json'}, authHeaders()),
       body: JSON.stringify(payload)
     });
     closeModal();
@@ -1296,7 +1398,7 @@ async function saveEntry(e) {
 async function deleteEntry() {
   if (!editingEntryId) return;
   if (!confirm('Eintrag löschen?')) return;
-  await fetch(`/api/entries/${editingEntryId}`, { method: 'DELETE' });
+  await fetch(`/api/entries/${editingEntryId}`, { method: 'DELETE', headers: authHeaders() });
   closeModal();
   if (currentWeek) loadWeekView();
   showToast('Eintrag gelöscht');
