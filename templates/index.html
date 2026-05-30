@@ -701,8 +701,8 @@
         <div class="form-group">
           <label>Von / Bis</label>
           <div class="time-row">
-            <input type="time" id="f-von" step="300">
-            <input type="time" id="f-bis" step="300">
+            <input type="time" id="f-von" step="300" onchange="snapTo5(this)">
+            <input type="time" id="f-bis" step="300" onchange="snapTo5(this)">
           </div>
         </div>
 
@@ -1025,7 +1025,9 @@ function openEditEntryById(entryId, entriesJson, dateStr) {
 
 // ── Date Helpers ──────────────────────────────────────────────────────────────
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 function formatDate(dateStr) {
@@ -1074,7 +1076,8 @@ function getMondayOfWeek(year, week) {
   startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7));
   const monday = new Date(startOfWeek1);
   monday.setDate(startOfWeek1.getDate() + (week - 1) * 7);
-  return monday.toISOString().slice(0, 10);
+  const pad = n => String(n).padStart(2, '0');
+  return `${monday.getFullYear()}-${pad(monday.getMonth() + 1)}-${pad(monday.getDate())}`;
 }
 
 function getWeekDates(dateStr) {
@@ -1086,7 +1089,8 @@ function getWeekDates(dateStr) {
   for (let i = 0; i < 7; i++) {
     const dd = new Date(monday);
     dd.setDate(monday.getDate() + i);
-    days.push(dd.toISOString().slice(0, 10));
+    const pad = n => String(n).padStart(2, '0');
+    days.push(`${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`);
   }
   return days;
 }
@@ -1191,6 +1195,17 @@ function setPause(minutes) {
 
 function clearPauseBtns() {
   document.querySelectorAll('.pause-btn').forEach(b => b.classList.remove('active'));
+}
+
+// Zeit auf 5-Minuten-Schritte runden
+function snapTo5(el) {
+  if (!el.value) return;
+  let [h, m] = el.value.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return;
+  m = Math.round(m / 5) * 5;
+  if (m === 60) { m = 0; h = (h + 1) % 24; }
+  const pad = n => String(n).padStart(2, '0');
+  el.value = `${pad(h)}:${pad(m)}`;
 }
 
 // ── Activity select ───────────────────────────────────────────────────────────
