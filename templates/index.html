@@ -33,11 +33,11 @@
     overscroll-behavior: none;
   }
 
-  /* ââ SCREENS ââ */
+  /* ── SCREENS ── */
   .screen { display: none; flex-direction: column; min-height: 100vh; }
   .screen.active { display: flex; }
 
-  /* ââ EMPLOYEE SELECT ââ */
+  /* ── EMPLOYEE SELECT ── */
   #screen-employee {
     align-items: center;
     justify-content: center;
@@ -71,7 +71,7 @@
   .employee-btn .kuerzel { font-size: 22px; font-weight: 700; display: block; }
   .employee-btn .fullname { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 4px; display: block; }
 
-  /* ââ MAIN APP ââ */
+  /* ── MAIN APP ── */
   #screen-main { background: var(--bg); }
 
   /* Header */
@@ -185,7 +185,7 @@
     padding-bottom: 100px;
   }
 
-  /* ââ KW OVERVIEW ââ */
+  /* ── KW OVERVIEW ── */
   .kw-overview-title {
     font-size: 14px;
     font-weight: 700;
@@ -258,7 +258,7 @@
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
   .empty-state p { font-size: 15px; }
 
-  /* ââ WEEK VIEW ââ */
+  /* ── WEEK VIEW ── */
   .week-day-block {
     background: var(--card);
     border-radius: var(--radius);
@@ -351,7 +351,7 @@
   }
   .fab:active { transform: scale(0.92); box-shadow: 0 2px 10px rgba(26,86,219,0.4); }
 
-  /* ââ MODAL / BOTTOM SHEET ââ */
+  /* ── MODAL / BOTTOM SHEET ── */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -602,18 +602,18 @@
 </head>
 <body>
 
-<!-- ââ EMPLOYEE SELECTION SCREEN ââ -->
+<!-- ── EMPLOYEE SELECTION SCREEN ── -->
 <div id="screen-employee" class="screen active">
   <div class="logo-area">
     <h1>Stundenerfassung</h1>
-    <p>WÃ¤hle dein KÃ¼rzel</p>
+    <p>Wähle dein Kürzel</p>
   </div>
   <div class="employee-grid" id="employee-grid">
     <!-- filled by JS -->
   </div>
 </div>
 
-<!-- ââ MAIN APP SCREEN ââ -->
+<!-- ── MAIN APP SCREEN ── -->
 <div id="screen-main" class="screen">
 
   <!-- Header: KW Overview mode (default) -->
@@ -629,7 +629,7 @@
   <!-- Header: Week view mode (hidden until KW selected) -->
   <div class="app-header" id="header-weekview" style="display:none">
     <div class="header-top">
-      <button class="header-back-btn" onclick="showKWOverview()">&#8592; Ãbersicht</button>
+      <button class="header-back-btn" onclick="showKWOverview()">&#8592; Übersicht</button>
       <span class="header-center-title" id="weekview-kw-title">KW -- / ----</span>
       <div class="header-right-placeholder"></div>
     </div>
@@ -659,7 +659,7 @@
   <input type="date" id="date-picker-input">
 </div>
 
-<!-- ââ ENTRY MODAL ââ -->
+<!-- ── ENTRY MODAL ── -->
 <div class="modal-overlay" id="entry-modal" onclick="handleOverlayClick(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -684,9 +684,9 @@
 
         <!-- Activity -->
         <div class="form-group">
-          <label>AktivitÃ¤t</label>
+          <label>Aktivität</label>
           <select id="f-aktivitaet">
-            <option value="">-- WÃ¤hlen --</option>
+            <option value="">-- Wählen --</option>
           </select>
           <input type="hidden" id="f-akt-code">
         </div>
@@ -721,7 +721,7 @@
 
         <div class="btn-row">
           <button type="button" class="btn-danger" id="delete-btn"
-                  onclick="deleteEntry()" style="display:none">LÃ¶schen</button>
+                  onclick="deleteEntry()" style="display:none">Löschen</button>
           <button type="submit" class="btn-primary" id="save-btn">Speichern</button>
         </div>
 
@@ -734,7 +734,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ââ State ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── State ────────────────────────────────────────────────────────────────────
 let currentEmployee = null;
 let currentDate = todayStr();
 let editingEntryId = null;
@@ -744,7 +744,7 @@ let currentEntries = []; // entries for currently open modal's day context
 let availableWeeks = [];
 let currentWeek = null; // { year, week } of the currently displayed week view
 
-// ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
   const saved = localStorage.getItem('employee');
   await loadStaticData();
@@ -755,7 +755,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-// ââ Static Data âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Static Data ───────────────────────────────────────────────────────────────
 async function loadStaticData() {
   try {
     const [customers, activities] = await Promise.all([
@@ -766,7 +766,7 @@ async function loadStaticData() {
     allActivities = activities;
 
     const sel = document.getElementById('f-aktivitaet');
-    sel.innerHTML = '<option value="">-- WÃ¤hlen --</option>';
+    sel.innerHTML = '<option value="">-- Wählen --</option>';
     activities.forEach(a => {
       const opt = document.createElement('option');
       opt.value = a.name;
@@ -779,7 +779,7 @@ async function loadStaticData() {
   }
 }
 
-// ââ Employee ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Employee ──────────────────────────────────────────────────────────────────
 async function renderEmployeeGrid() {
   const employees = await fetch('/api/employees').then(r => r.json());
   const grid = document.getElementById('employee-grid');
@@ -817,7 +817,7 @@ function showScreen(name) {
   document.getElementById('screen-' + name).classList.add('active');
 }
 
-// ââ Available Weeks âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Available Weeks ───────────────────────────────────────────────────────────
 async function fetchAvailableWeeks() {
   try {
     const data = await fetch(`/api/available-weeks?employee=${currentEmployee.id}`).then(r => r.json());
@@ -827,7 +827,7 @@ async function fetchAvailableWeeks() {
   }
 }
 
-// ââ KW Overview âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── KW Overview ───────────────────────────────────────────────────────────────
 function renderKWOverview() {
   // Show overview header, hide week view header
   document.getElementById('header-overview').style.display = '';
@@ -846,7 +846,7 @@ function renderKWOverview() {
     container.innerHTML = `
       <div class="no-weeks-msg">
         <div class="icon">&#128194;</div>
-        <p>Keine StundenblÃ¤tter gefunden.<br>Bitte Sync ausfÃ¼hren.</p>
+        <p>Keine Stundenblätter gefunden.<br>Bitte Sync ausführen.</p>
       </div>`;
     return;
   }
@@ -883,7 +883,7 @@ function showKWOverview() {
   renderKWOverview();
 }
 
-// ââ Week View âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Week View ─────────────────────────────────────────────────────────────────
 function openWeekView(year, week) {
   currentWeek = { year, week };
   const monday = getMondayOfWeek(year, week);
@@ -952,7 +952,7 @@ async function loadWeekView() {
 
     const weekDates = getWeekDates(getMondayOfWeek(year, week));
     const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-    const months = ['Jan','Feb','MÃ¤r','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
     const today = todayStr();
 
     container.innerHTML = '';
@@ -972,7 +972,7 @@ async function loadWeekView() {
 
       let entriesHtml = '';
       if (dayEntries.length === 0) {
-        entriesHtml = '<div class="week-empty">Keine EintrÃ¤ge</div>';
+        entriesHtml = '<div class="week-empty">Keine Einträge</div>';
       } else {
         dayEntries.forEach(e => {
           entriesHtml += `
@@ -996,7 +996,7 @@ async function loadWeekView() {
         </div>
         <div class="week-day-entries">${entriesHtml}</div>
         <button class="week-add-btn" onclick="openNewEntry('${dateStr}')">
-          + Eintrag hinzufÃ¼gen
+          + Eintrag hinzufügen
         </button>`;
 
       container.appendChild(block);
@@ -1023,7 +1023,7 @@ function openEditEntryById(entryId, entriesJson, dateStr) {
   }
 }
 
-// ââ Date Helpers ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Date Helpers ──────────────────────────────────────────────────────────────
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -1031,7 +1031,7 @@ function todayStr() {
 function formatDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00');
   const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-  const months = ['Jan', 'Feb', 'MÃ¤r', 'Apr', 'Mai', 'Jun',
+  const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
   return `${days[d.getDay()]}, ${d.getDate()}. ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
@@ -1047,7 +1047,7 @@ function formatDateRange(mondayStr, sundayStr) {
   const mo = new Date(mondayStr + 'T12:00:00');
   const su = new Date(sundayStr + 'T12:00:00');
   const pad = n => String(n).padStart(2, '0');
-  return `Mo ${pad(mo.getDate())}.${pad(mo.getMonth() + 1)}. â So ${pad(su.getDate())}.${pad(su.getMonth() + 1)}.`;
+  return `Mo ${pad(mo.getDate())}.${pad(mo.getMonth() + 1)}. – So ${pad(su.getDate())}.${pad(su.getMonth() + 1)}.`;
 }
 
 function getISOWeek(dateStr) {
@@ -1091,7 +1091,7 @@ function getWeekDates(dateStr) {
   return days;
 }
 
-// ââ Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Modal ────────────────────────────────────────────────────────────────────
 function openNewEntry(dateStr) {
   if (dateStr) {
     currentDate = dateStr;
@@ -1150,7 +1150,7 @@ function handleOverlayClick(e) {
   if (e.target === document.getElementById('entry-modal')) closeModal();
 }
 
-// ââ Customer search âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Customer search ───────────────────────────────────────────────────────────
 function searchCustomers(query) {
   const results = document.getElementById('customer-results');
   if (!query || query.length < 1) { results.style.display = 'none'; return; }
@@ -1180,7 +1180,7 @@ document.addEventListener('click', e => {
   }
 });
 
-// ââ Pause ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Pause ────────────────────────────────────────────────────────────────────
 function setPause(minutes) {
   document.getElementById('f-pause').value = minutes;
   clearPauseBtns();
@@ -1193,7 +1193,7 @@ function clearPauseBtns() {
   document.querySelectorAll('.pause-btn').forEach(b => b.classList.remove('active'));
 }
 
-// ââ Activity select âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Activity select ───────────────────────────────────────────────────────────
 document.addEventListener('change', e => {
   if (e.target.id === 'f-aktivitaet') {
     const sel = e.target;
@@ -1202,7 +1202,7 @@ document.addEventListener('change', e => {
   }
 });
 
-// ââ Save / Delete ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Save / Delete ────────────────────────────────────────────────────────────
 async function saveEntry(e) {
   e.preventDefault();
   const btn = document.getElementById('save-btn');
@@ -1233,7 +1233,7 @@ async function saveEntry(e) {
     closeModal();
     // Reload the week view to reflect changes
     if (currentWeek) loadWeekView();
-    showToast(editingEntryId ? 'Eintrag gespeichert â' : 'Eintrag hinzugefÃ¼gt â');
+    showToast(editingEntryId ? 'Eintrag gespeichert ✓' : 'Eintrag hinzugefügt ✓');
   } catch (err) {
     showToast('Fehler beim Speichern');
   } finally {
@@ -1244,14 +1244,14 @@ async function saveEntry(e) {
 
 async function deleteEntry() {
   if (!editingEntryId) return;
-  if (!confirm('Eintrag lÃ¶schen?')) return;
+  if (!confirm('Eintrag löschen?')) return;
   await fetch(`/api/entries/${editingEntryId}`, { method: 'DELETE' });
   closeModal();
   if (currentWeek) loadWeekView();
-  showToast('Eintrag gelÃ¶scht');
+  showToast('Eintrag gelöscht');
 }
 
-// ââ Toast âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Toast ─────────────────────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
