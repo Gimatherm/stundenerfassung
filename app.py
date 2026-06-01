@@ -409,6 +409,19 @@ def get_unsynced():
     db.close()
     return jsonify([dict(r) for r in rows])
 
+@app.route('/api/admin/reset', methods=['POST'])
+def admin_reset():
+    """Loescht alle Eintraege und verfuegbaren Wochen (nur Admin). Fuer sauberen Start."""
+    if not is_admin_token(request.headers.get('X-Auth-Token', '')):
+        return jsonify({"error": "unauthorized"}), 401
+    db = get_db()
+    cur = db.execute("DELETE FROM entries")
+    deleted = cur.rowcount
+    db.execute("DELETE FROM available_weeks")
+    db.commit()
+    db.close()
+    return jsonify({"ok": True, "deleted_entries": deleted})
+
 @app.route('/api/entries/mark-synced', methods=['POST'])
 def mark_synced():
     data = request.get_json()
