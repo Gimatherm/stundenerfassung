@@ -699,6 +699,10 @@
       <div class="btn-row">
         <button type="button" class="btn-primary" id="pinadmin-save" onclick="savePinAdmin()">Speichern</button>
       </div>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Fuer den echten Start: entfernt ALLE bisher erfassten Eintraege.</div>
+        <button type="button" class="btn-danger" style="width:100%;" onclick="resetEntries()">Alle Eintraege loeschen (Neustart)</button>
+      </div>
     </div>
   </div>
 </div>
@@ -986,6 +990,25 @@ async function savePinAdmin() {
     msg.textContent = 'Verbindungsfehler';
   }
   btn.disabled = false; btn.textContent = 'Speichern';
+}
+
+async function resetEntries() {
+  if (!confirm('Wirklich ALLE erfassten Eintraege loeschen? Das kann nicht rueckgaengig gemacht werden.')) return;
+  if (!confirm('Sicher? Letzte Warnung – alle Eintraege werden geloescht.')) return;
+  try {
+    const res = await fetch('/api/admin/reset', { method: 'POST', headers: authHeaders() });
+    let d = {};
+    try { d = await res.json(); } catch (e) {}
+    if (res.ok) {
+      alert('Erledigt. Geloeschte Eintraege: ' + (d.deleted_entries != null ? d.deleted_entries : '?'));
+      closePinAdmin();
+      if (currentEmployee) { await fetchAvailableWeeks(); renderKWOverview(); }
+    } else if (res.status === 404) {
+      alert('Funktion wird noch bereitgestellt, bitte in 1-2 Minuten erneut versuchen.');
+    } else {
+      alert('Nicht moeglich (nur Admin). Status ' + res.status);
+    }
+  } catch (e) { alert('Verbindungsfehler'); }
 }
 
 function showScreen(name) {
