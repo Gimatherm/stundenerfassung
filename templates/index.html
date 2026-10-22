@@ -1369,6 +1369,7 @@ function openEditEntry(entry) {
   for (let opt of sel.options) {
     if (opt.value === entry.aktivitaet) { sel.value = opt.value; break; }
   }
+  document.getElementById('f-akt-code').value = entry.akt_code || '';
 
   clearPauseBtns();
   document.querySelectorAll('.pause-btn').forEach(btn => {
@@ -1469,9 +1470,9 @@ async function saveEntry(e) {
     employee_id: currentEmployee.id,
     datum: currentDate,
     kundenname: document.getElementById('f-kundenname').value.trim() || null,
-    kunden_id: parseInt(document.getElementById('f-kunden-id').value) || null,
+    kunden_id: (function(){ let id=parseInt(document.getElementById('f-kunden-id').value)||null; if(!id){ const nm=document.getElementById('f-kundenname').value.trim().toLowerCase(); if(nm){ const m=allCustomers.find(c=>String(c.name).trim().toLowerCase()===nm); if(m) id=m.id; } } return id; })(),
     aktivitaet: document.getElementById('f-aktivitaet').value || null,
-    akt_code: parseInt(document.getElementById('f-akt-code').value) || null,
+    akt_code: (function(){ const s=document.getElementById('f-aktivitaet'); const o=s.options[s.selectedIndex]; return o ? (parseInt(o.dataset.code) || null) : null; })(),
     von: document.getElementById('f-von').value || null,
     bis: document.getElementById('f-bis').value || null,
     pause: parseInt(document.getElementById('f-pause').value) || 0,
