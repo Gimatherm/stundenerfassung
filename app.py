@@ -1,4 +1,6 @@
 # v2 - KW overview redesign
+# v2.1 (22.10.2026) - Sicherheitsfix: AUTH_SECRET ohne oeffentlichen Standardwert,
+#                     Sync-Endpunkte nur noch mit Sync-Schluessel (X-Sync-Key) oder Admin-Token
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import sqlite3
@@ -6,6 +8,7 @@ import os
 import json
 import hmac
 import hashlib
+import secrets
 from datetime import datetime
 
 app = Flask(__name__)
@@ -33,19 +36,32 @@ DEFAULT_PINS = {
     "RTE": "6789",
 }
 ADMIN_IDS = {"JHE"}  # darf alle Mitarbeiter sehen
-AUTH_SECRET = os.environ.get('AUTH_SECRET', 'gimatherm-stunden-2026-geheim')
+# Geheimer Schluessel fuer die Login-Tokens. MUSS auf Render als Umgebungsvariable
+# AUTH_SECRET gesetzt sein. Ohne ihn wird bei jedem Start ein Zufallswert benutzt,
+# dann muessen sich alle nach jedem Neustart neu anmelden (sicher, aber laestig).
+AUTH_SECRET = os.environ.get('AUTH_SECRET', '')
+if not AUTH_SECRET:
+    AUTH_SECRET = secrets.token_hex(32)
+    print("WARNUNG: AUTH_SECRET ist nicht gesetzt. Zufaelliger Schluessel aktiv.", flush=True)
+
+# Schluessel fuer die Sync-Skripte auf Jans PC (Kopfzeile X-Sync-Key).
+# Auf Render als Umgebungsvariable SYNC_KEY setzen, lokal in sync_schluessel.txt.
+SYNC_KEY = os.environ.get('SYNC_KEY', '')
 
 def token_for(employee_id):
     return hmac.new(AUTH_SECRET.encode(), str(employee_id).encode(),
                     hashlib.sha256).hexdigest()[:32]
 
+def same(a, b):
+    return hmac.compare_digest(str(a), str(b))
+
 def valid_for(employee_id, token):
     if not token:
         return False
-    if token == token_for(employee_id):
+    if same(token, token_for(employee_id)):
         return True
     for aid in ADMIN_IDS:
-        if token == token_for(aid):
+        if same(token, token_for(aid)):
             return True
     return False
 
@@ -53,7 +69,17 @@ def check_auth(employee_id):
     return valid_for(employee_id, request.headers.get('X-Auth-Token', ''))
 
 def is_admin_token(token):
-    return bool(token) and any(token == token_for(a) for a in ADMIN_IDS)
+    return bool(token) and any(same(token, token_for(a)) for a in ADMIN_IDS)
+
+def is_sync_request():
+    """Erlaubt: Sync-Skript mit richtigem X-Sync-Key oder Admin mit Login-Token."""
+    key = request.headers.get('X-Sync-Key', '')
+    if SYNC_KEY and key and same(key, SYNC_KEY):
+        return True
+    return is_admin_token(request.headers.get('X-Auth-Token', ''))
+
+def sync_denied():
+    return jsonify({"error": "unauthorized"}), 401
 
 def ensure_pins():
     db = get_db()
@@ -142,6 +168,8 @@ def get_customers():
 @app.route('/api/customers/import', methods=['POST'])
 def import_customers():
     """Ersetzt die gesamte Kundenliste."""
+    if not is_sync_request():
+        return sync_denied()
     data = request.get_json()
     customers = data.get('customers', [])
     if not customers:
@@ -240,6 +268,8 @@ def get_available_weeks():
 
 @app.route('/api/available-weeks', methods=['POST'])
 def set_available_weeks():
+    if not is_sync_request():
+        return sync_denied()
     data = request.get_json()
     weeks = data.get('weeks', [])
     db = get_db()
@@ -367,6 +397,8 @@ def get_week_entries():
 
 @app.route('/api/sync-status')
 def get_sync_status():
+    if not is_sync_request():
+        return sync_denied()
     db = get_db()
     rows = db.execute(
         """SELECT employee_id, datum, COUNT(*) as count
@@ -402,6 +434,8 @@ def get_sync_status():
 # -- Sync endpoints ----------------------------------------------------------
 @app.route('/api/entries/unsynced')
 def get_unsynced():
+    if not is_sync_request():
+        return sync_denied()
     db = get_db()
     rows = db.execute(
         "SELECT * FROM entries WHERE synced = 0 ORDER BY datum, employee_id, von"
@@ -424,6 +458,8 @@ def admin_reset():
 
 @app.route('/api/entries/mark-synced', methods=['POST'])
 def mark_synced():
+    if not is_sync_request():
+        return sync_denied()
     data = request.get_json()
     ids = data.get('ids', [])
     if not ids:
